@@ -6,7 +6,7 @@ itérateur comme le dataloader de pytorch
 import os
 import torch
 from scipy.io import wavfile #for audio processing
-from toolkit import reshape
+import code.toolkit as toolkit
 
 class SpeechDataset(object):
     """SpeechDataset dataset."""
@@ -50,7 +50,7 @@ class SpeechDataset(object):
         
 
         if self.transform=='reshape':
-            signal = reshape(signal, self.max_len())
+            signal = toolkit.reshape(signal, self.max_len())
             
         sample = {'signal': signal}
 

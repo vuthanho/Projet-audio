@@ -3,6 +3,15 @@
 Script contenant des fonctions utiles
 """
 import numpy as np
+import math
+
+def psnr(a1,a2):
+    mse = np.mean( (a1 - a2) ** 2 )
+    if mse == 0:
+        return 100
+    max_intensity = 255.0
+    return 20 * math.log10(max_intensity / math.sqrt(mse))
+
 
 import numpy as np
 import math
