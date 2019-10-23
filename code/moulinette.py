@@ -88,10 +88,10 @@ def bruit_random(chemin_bruit,chemin_soure,chemin_resultat):
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
 chemin_test = dir_path+'/Raw_data/TIMIT_TEST'
-nouveau_chemin_test = dir_path+'/Data/Data_test'
+nouveau_chemin_test = dir_path+'/data/data_test'
 
 chemin_train = dir_path+'/Raw_data/TIMIT_TRAIN'
-nouveau_chemin_train = dir_path+'/Data/Data_train'
+nouveau_chemin_train = dir_path+'/data/data_train'
 
 chacha20(chemin_test,nouveau_chemin_test)
 chacha20(chemin_train,nouveau_chemin_train)
@@ -102,16 +102,16 @@ chacha20(chemin_train,nouveau_chemin_train)
 
 
 #affichage signal
-chemin_file = "C:/Users/Loïc/Documents/3A/projet audio/Data_train/DR1_FDAW0_SA1RIFF.wav"
-fs, s1 = wavfile.read(chemin_file)
-s = np.array(s1)
-s = s / max(abs(s))
+# chemin_file = "C:/Users/Loïc/Documents/3A/projet audio/Data_train/DR1_FDAW0_SA1RIFF.wav"
+# fs, s1 = wavfile.read(chemin_file)
+# s = np.array(s1)
+# s = s / max(abs(s))
 
-plt.plot(s)
-plt.xlabel("Sample")
-plt.ylabel("amplitude normalisée)")
-plt.title("CHACHA20 best name ever")
-plt.show()
+# plt.plot(s)
+# plt.xlabel("Sample")
+# plt.ylabel("amplitude normalisée)")
+# plt.title("CHACHA20 best name ever")
+# plt.show()
 
 #lecture via carte son
 #winsound.PlaySound(chemin_file,winsound.SND_FILENAME)
@@ -122,10 +122,14 @@ Attention la fréquence d'échantillonage du signal du bruit et des voix ne sont
 pas égaux donc j'ai pris la plus petit : 16kHz celle des voix pour construire
 des signaux bruités.
 """
-chemin_bruit="C:/Users/Loïc/Documents/3A/projet audio/babble.wav"
-chemin_soure="C:/Users/Loïc/Documents/3A/projet audio/Data_test"
-chemin_resultat="C:/Users/Loïc/Documents/3A/projet audio/Data_test_bruit"
-bruit_random(chemin_bruit,chemin_soure,chemin_resultat)
+# chemin_bruit=dir_path+"/data/babble.wav"
+# chemin_soure=dir_path+"/data/data_test"
+# chemin_resultat=dir_path+"/data/data_test_bruit"
+# bruit_random(chemin_bruit,chemin_soure,chemin_resultat)
+
+# chemin_soure=dir_path+"/data/data_train"
+# chemin_resultat=dir_path+"/data/data_train_bruit"
+# bruit_random(chemin_bruit,chemin_soure,chemin_resultat)
 
 
 
