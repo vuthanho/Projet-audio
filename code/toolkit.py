@@ -7,18 +7,23 @@ import numpy as np
 import math
 
 def psnr(a1,a2):
-    mse = numpy.mean( (a1 - a2) ** 2 )
+    mse = np.mean( (a1 - a2) ** 2 )
     if mse == 0:
         return 100
     if type(a1[0])==np.int16:
-        max_intensity = 16384.0
+        max_intensity = float(2**15)
     else:
         max_intensity = 1.0
     return 20 * math.log10(max_intensity / math.sqrt(mse))
 
-def reverse_psnr(g,a1,a2):
-    # a1 is fixed and a2 is returned such that psnr(a1,a2)=g
-    return 
+def reverse_psnr(g,a,b):
+    # gamma is returned such that psnr(a,a+gamma*b)=g
+    sigma = math.sqrt(np.mean( np.power(b,2) ))
+    if type(a[0])==np.int16:
+        max_intensity = float(2**15)
+    else:
+        max_intensity = 1.0
+    return sigma/max_intensity*10**(-g/20)
 
 def reshape(signal, max_len):
     "add zero padding"
