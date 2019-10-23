@@ -93,8 +93,8 @@ nouveau_chemin_test = dir_path+'/data/data_test'
 chemin_train = dir_path+'/Raw_data/TIMIT_TRAIN'
 nouveau_chemin_train = dir_path+'/data/data_train'
 
-chacha20(chemin_test,nouveau_chemin_test)
-chacha20(chemin_train,nouveau_chemin_train)
+#chacha20(chemin_test,nouveau_chemin_test)
+#chacha20(chemin_train,nouveau_chemin_train)
 
 #Suppression doublon
 #salsa20(chemin)

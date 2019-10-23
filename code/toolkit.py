@@ -2,6 +2,7 @@
 """
 Script contenant des fonctions utiles
 """
+import numpy as np
 
 import numpy as np
 import math
@@ -15,3 +16,7 @@ def psnr(a1,a2):
 
 
 def reshape(signal, max_len):
+    "add zero padding"
+    zero=np.zeros(max_len-len(signal))
+    resultat=np.concatenate((signal,zero))
+    return resultat
