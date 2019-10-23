@@ -56,7 +56,7 @@ def salsa20(chemin):
     print(i, "Fichier .WAV supprimé")
     
 
-def bruit_random(chemin_bruit,chemin_soure,chemin_resultat):
+def bruit_random(chemin_bruit,chemin_soure,chemin_resultat,psnr):
     i=0
     fbruit, bruit = wavfile.read(chemin_bruit)
     N_bruit = len(bruit)
