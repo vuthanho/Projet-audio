@@ -56,7 +56,7 @@ def salsa20(chemin):
     print(i, "Fichier .WAV supprimé")
     
 
-def bruit_random(chemin_bruit,chemin_soure,chemin_resultat):
+def bruit_random(chemin_bruit,chemin_soure,chemin_resultat,psnr):
     i=0
     fbruit, bruit = wavfile.read(chemin_bruit)
     N_bruit = len(bruit)
@@ -113,6 +113,13 @@ nouveau_chemin_train = dir_path+'/data/data_train'
 # plt.title("CHACHA20 best name ever")
 # plt.show()
 
+
+# plt.plot(s)
+# plt.xlabel("Sample")
+# plt.ylabel("amplitude normalisée)")
+# plt.title("CHACHA20 best name ever")
+# plt.show()
+
 #lecture via carte son
 #winsound.PlaySound(chemin_file,winsound.SND_FILENAME)
 
@@ -131,7 +138,12 @@ des signaux bruités.
 # chemin_resultat=dir_path+"/data/data_train_bruit"
 # bruit_random(chemin_bruit,chemin_soure,chemin_resultat)
 
+# chemin_bruit=dir_path+"/data/babble.wav"
+# chemin_soure=dir_path+"/data/data_test"
+# chemin_resultat=dir_path+"/data/data_test_bruit"
+# bruit_random(chemin_bruit,chemin_soure,chemin_resultat)
 
-
-
+# chemin_soure=dir_path+"/data/data_train"
+# chemin_resultat=dir_path+"/data/data_train_bruit"
+# bruit_random(chemin_bruit,chemin_soure,chemin_resultat)
 

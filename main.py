@@ -4,9 +4,16 @@ Main script du projet
 """
 
 from code.speechdataset import SpeechDataset
+import os
 
-data_train_bruit = SpeechDataset("C:/Users/Loïc/Documents/3A/projet audio/data/Data_train_bruit")
+dir_path = os.path.dirname(os.path.realpath(__file__))
+train_bruit_path = dir_path+'/data/data_train_bruit'
+
+data_train_bruit = SpeechDataset(train_bruit_path, transform=['reshape','tensor'])
 sample = data_train_bruit[2]
-print(len(data_train_bruit))
-nb=data_train_bruit.max_len()
-print(nb)
+print("nombre de fichier : ",len(data_train_bruit))
+nb=data_train_bruit.max_len_function()
+print("max_len : ",nb)
+print("len signal : ",len(sample['signal']))
+
+dataloader = torch.utils.data.DataLoader(data_train_bruit, batch_size=4, shuffle=True, num_workers=4)

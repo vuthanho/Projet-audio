@@ -6,12 +6,12 @@ itérateur comme le dataloader de pytorch
 import os
 import torch
 from scipy.io import wavfile #for audio processing
-from toolkit import reshape
+import code.toolkit as toolkit
 
 class SpeechDataset(object):
     """SpeechDataset dataset."""
 
-    def __init__(self, root_dir, transform=None):
+    def __init__(self, root_dir, transform=[None]):
         """
         Args:
             root_dir (string): Directory with all the file .wav.
@@ -20,6 +20,7 @@ class SpeechDataset(object):
         """
         self.root_dir = root_dir
         self.transform = transform
+        self.max_len = self.max_len_function()
 
     def __len__(self):
         for root, _, files in os.walk(self.root_dir):
@@ -27,7 +28,7 @@ class SpeechDataset(object):
             return len(files)
 
     
-    def max_len(self):
+    def max_len_function(self):
         nb=0
         for file in os.listdir(self.root_dir):
             file_name = os.path.join(self.root_dir, file)
@@ -49,8 +50,17 @@ class SpeechDataset(object):
         fs, signal = wavfile.read(file_name)
         
 
-        if self.transform=='reshape':
-            signal = reshape(signal, self.max_len())
+        if 'reshape' in self.transform:
+            signal = toolkit.reshape(signal, self.max_len)
+        
+        if 'tensor' in self.transform:
+            signal = toolkit.totensor(signal)
+            
+        if 'tensor_cuda' in self.transform:
+            signal = toolkit.totensor_cuda(signal)
+            
+        if 'normalisation' in self.transform:
+            print("To Do")
             
         sample = {'signal': signal}
 
