@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-Created on Wed Oct 23 08:36:01 2019
-
-@author: Loïc
+Classe permettant de load les données. Penser pour être utilisé avec un
+itérateur comme le dataloader de pytorch
 """
 import os
 import torch
@@ -23,8 +22,19 @@ class SpeechDataset(object):
 
     def __len__(self):
         for root, _, files in os.walk(self.root_dir):
+            #files est une liste contenant tous les fichiers
             return len(files)
 
+    
+    def max_len(self):
+        nb=0
+        for file in os.listdir(self.root_dir):
+            file_name = os.path.join(self.root_dir, file)
+            fs, signal = wavfile.read(file_name)
+            if nb<len(signal):
+                nb=len(signal)
+        return nb
+    
     def __getitem__(self, idx):
         if torch.is_tensor(idx):
             idx = idx.tolist()
