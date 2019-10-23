@@ -93,8 +93,8 @@ nouveau_chemin_test = dir_path+'/Data/Data_test'
 chemin_train = dir_path+'/Raw_data/TIMIT_TRAIN'
 nouveau_chemin_train = dir_path+'/Data/Data_train'
 
-chacha20(chemin_test,nouveau_chemin_test)
-chacha20(chemin_train,nouveau_chemin_train)
+#chacha20(chemin_test,nouveau_chemin_test)
+#chacha20(chemin_train,nouveau_chemin_train)
 
 #Suppression doublon
 #salsa20(chemin)
@@ -102,7 +102,7 @@ chacha20(chemin_train,nouveau_chemin_train)
 
 
 #affichage signal
-chemin_file = "C:/Users/Loïc/Documents/3A/projet audio/Data_train/DR1_FDAW0_SA1RIFF.wav"
+chemin_file = "C:/Users/Loïc/Documents/3A/projet-audio/data/data_train/DR1_FDAW0_SA1RIFF.wav"
 fs, s1 = wavfile.read(chemin_file)
 s = np.array(s1)
 s = s / max(abs(s))
@@ -125,9 +125,20 @@ des signaux bruités.
 chemin_bruit="C:/Users/Loïc/Documents/3A/projet audio/babble.wav"
 chemin_soure="C:/Users/Loïc/Documents/3A/projet audio/Data_test"
 chemin_resultat="C:/Users/Loïc/Documents/3A/projet audio/Data_test_bruit"
-bruit_random(chemin_bruit,chemin_soure,chemin_resultat)
+#bruit_random(chemin_bruit,chemin_soure,chemin_resultat)
 
-
+chemin = "C:/Users/Loïc/Documents/3A/projet-audio/data/data_train/DR1_FDAW0_SA1RIFF.wav"
+fs, s1 = wavfile.read(chemin)
+print("signal : ",len(s1))
+max_len=60000
+zero=np.zeros(max_len-len(s1))
+resultat=np.concatenate((s1,zero))
+plt.plot(resultat)
+plt.xlabel("Sample")
+plt.ylabel("amplitude normalisée)")
+plt.title("CHACHA20 best name ever")
+plt.show()
+len(resultat)==max_len
 
 
 
