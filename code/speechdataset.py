@@ -11,27 +11,28 @@ import code.toolkit as toolkit
 class SpeechDataset(object):
     """SpeechDataset dataset."""
 
-    def __init__(self, root_dir, transform=[None]):
+    def __init__(self, root_dir_noise, root_dir, transform=[None]):
         """
         Args:
-            root_dir (string): Directory with all the file .wav.
+            root_dir_noise (string): Directory with all the file .wav.
             transform (callable, optional): Optional transform to be applied
                 on a sample(file).
         """
+        self.root_dir_noise = root_dir_noise
         self.root_dir = root_dir
         self.transform = transform
         self.max_len = self.max_len_function()
 
     def __len__(self):
-        for root, _, files in os.walk(self.root_dir):
+        for root, _, files in os.walk(self.root_dir_noise):
             #files est une liste contenant tous les fichiers
             return len(files)
 
     
     def max_len_function(self):
         nb=0
-        for file in os.listdir(self.root_dir):
-            file_name = os.path.join(self.root_dir, file)
+        for file in os.listdir(self.root_dir_noise):
+            file_name = os.path.join(self.root_dir_noise, file)
             fs, signal = wavfile.read(file_name)
             if nb<len(signal):
                 nb=len(signal)
@@ -42,26 +43,29 @@ class SpeechDataset(object):
             idx = idx.tolist()
             
         i=0
-        for file in os.listdir(self.root_dir):
+        for file in os.listdir(self.root_dir_noise):
             if i==idx:
-                file_name = os.path.join(self.root_dir, file)
+                file_name_noised = os.path.join(self.root_dir_noise, file)
+                file_name= os.path.join(self.root_dir, file)
             i=i+1
         
+        fs_noised, signal_noised = wavfile.read(file_name_noised)
         fs, signal = wavfile.read(file_name)
-        
 
         if 'reshape' in self.transform:
+            signal_noised = toolkit.reshape(signal_noised, self.max_len)
             signal = toolkit.reshape(signal, self.max_len)
         
         if 'tensor' in self.transform:
+            signal_noised = toolkit.totensor(signal_noised)
             signal = toolkit.totensor(signal)
             
         if 'tensor_cuda' in self.transform:
-            signal = toolkit.totensor_cuda(signal)
+            print("To Do")
             
         if 'normalisation' in self.transform:
             print("To Do")
             
-        sample = {'signal': signal}
+        sample = {'signal_noised': signal_noised, 'signal' : signal}
 
         return sample

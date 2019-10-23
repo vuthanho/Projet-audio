@@ -36,7 +36,7 @@ def totensor(signal):
     return torch.from_numpy(signal)
 
 def totensor_cuda(signal):
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    print('Using device:', device)
-    print()
-    return torch.from_numpy(signal,device = "cuda:0")
+    print("To Do")
+    
+def normalise(signal):
+    print("To Do")
