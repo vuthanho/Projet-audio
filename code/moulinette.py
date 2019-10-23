@@ -27,6 +27,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import winsound
 import random
+import math
 
 
 #Fonction
@@ -56,7 +57,7 @@ def salsa20(chemin):
     print(i, "Fichier .WAV supprimé")
     
 
-def bruit_random(chemin_bruit,chemin_soure,chemin_resultat,psnr):
+def bruit_random(PSNR,chemin_bruit,chemin_soure,chemin_resultat,psnr):
     i=0
     fbruit, bruit = wavfile.read(chemin_bruit)
     N_bruit = len(bruit)
@@ -65,13 +66,12 @@ def bruit_random(chemin_bruit,chemin_soure,chemin_resultat,psnr):
             if file[-8::] == 'RIFF.wav':
                 fs, s1 = wavfile.read(chemin_soure+"/"+file)
                 s = np.array(s1)
-                s = s / max(abs(s))
                 N_signal = len(s)
                 N_chunck = N_bruit // N_signal
                 r1=random.randint(1, N_chunck-1)
                 r2=random.randint(1, N_chunck-1)
                 bruit_random = bruit[r1*N_signal:(r1+1)*N_signal] + bruit[r2*N_signal:(r2+1)*N_signal]
-                bruit_random = bruit_random / max(abs(bruit_random))
+                bruit_random = bruit_random / math.sqrt(np.mean( np.power(bruit_random,2) ))
                 signal_bruite = s + bruit_random
                 signal_bruite=np.array(signal_bruite, dtype='int16')
                 wavfile.write(chemin_resultat+"/"+file, fs, signal_bruite)
