@@ -24,7 +24,7 @@ def reverse_psnr(g,a,b):
         max_intensity = float(2**15)
     else:
         max_intensity = 1.0
-    return sigma/max_intensity*10**(-g/20)
+    return max_intensity/sigma*10**(-g/20)
 
 def reshape(signal, max_len):
     "add zero padding"
