@@ -8,6 +8,9 @@ import math
 import torch
 
 def psnr(a1,a2):
+    """
+    si a1 n'est pas un int16, alors a1 doit être compris entre -1 et 1
+    """
     mse = np.mean( (a1 - a2) ** 2 )
     if mse == 0:
         return 100
@@ -18,6 +21,9 @@ def psnr(a1,a2):
     return 20 * math.log10(max_intensity / math.sqrt(mse))
 
 def reverse_psnr(g,a,b):
+    """
+    si a n'est pas un int16, alors a doit être compris entre -1 et 1
+    """
     # gamma is returned such that psnr(a,a+gamma*b)=g
     sigma = math.sqrt(np.mean( np.power(b,2) ))
     if type(a[0])==np.int16:
