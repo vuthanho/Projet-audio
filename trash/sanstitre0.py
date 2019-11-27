@@ -59,6 +59,7 @@ def initialization(m):
 
 def training(trainloader, model, device, optimizer, criterion):
     loss_mean = 0
+    model.train()
     for batch, (data, labels) in enumerate (trainloader):
         #use of the GPU
         data, labels = data.to(device), labels.to(device)
@@ -80,6 +81,7 @@ def training(trainloader, model, device, optimizer, criterion):
 def validation(trainloader, model, device, size_validation, criterion):
     loss_mean = 0
     i = 0
+    model.eval()
     for batch, (data, labels) in enumerate (trainloader):
         data, labels = data.to(device), labels.to(device)
         result = model(data)
@@ -93,6 +95,7 @@ def validation(trainloader, model, device, size_validation, criterion):
 def test(testloader, model, device, criterion):
     loss_mean = 0
     i=0
+    model.eval()
     for batch, (data, labels) in enumerate (testloader):
         i+=1
         data, labels = data.to(device), labels.to(device)
