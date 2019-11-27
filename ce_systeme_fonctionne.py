@@ -4,13 +4,12 @@ Created on Tue Nov 26 16:22:59 2019
 https://pytorch.org/tutorials/beginner/pytorch_with_examples.html
 @author: Loïc
 """
-from code.speechdataset import SpeechDataset
-from code.twoLayerNet import TwoLayerNet
+from codes.speechdataset import SpeechDataset
+from codes.twoLayerNet import TwoLayerNet
 
 import os
 import matplotlib.pyplot as plt
 import numpy as np
-
 import torch
 import torchvision
 import torch.nn as nn
