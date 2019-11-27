@@ -39,10 +39,11 @@ def reshape(signal, max_len):
     return resultat
 
 def totensor(signal):
-    return torch.from_numpy(signal)
+    return torch.from_numpy(signal).float()
 
 def totensor_cuda(signal):
     print("To Do")
     
-def normalise(signal):
-    print("To Do")
+def normalise(tensor):
+    tensor_minusmean = tensor - tensor.mean()
+    return tensor_minusmean/tensor_minusmean.abs().max()

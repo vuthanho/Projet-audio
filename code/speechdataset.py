@@ -61,11 +61,12 @@ class SpeechDataset(object):
             signal = toolkit.totensor(signal)
             
         if 'tensor_cuda' in self.transform:
-            print("To Do")
+            signal_noised=signal_noised.to(torch.device("cuda:0"))
+            signal=signal.to(torch.device("cuda:0"))
             
         if 'normalisation' in self.transform:
-            print("To Do")
-            
+            signal_noised = toolkit.normalise(signal_noised)
+            signal = toolkit.normalise(signal)
         sample = {'signal_noised': signal_noised, 'signal' : signal}
 
         return sample
