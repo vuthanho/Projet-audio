@@ -6,7 +6,9 @@ itérateur comme le dataloader de pytorch
 import os
 import torch
 from scipy.io import wavfile #for audio processing
-import codes.toolkit as toolkit
+from scipy.signal import spectrogram
+from codes import toolkit
+from math import floor
 
 class SpeechDataset(object):
     """SpeechDataset dataset."""
@@ -67,6 +69,13 @@ class SpeechDataset(object):
         if 'normalisation' in self.transform:
             signal_noised = toolkit.normalise(signal_noised)
             signal = toolkit.normalise(signal)
+
+        if 'spectrogram' in self.transform:
+            fs=16000
+            nperseg = floor(0.03*fs)
+            noverlap=nperseg//2
+            signal_noised = spectrogram(signal_noised, fs=fs, window=('tukey', 0.25), nperseg=nperseg, noverlap=noverlap, nfft=None, detrend=False, return_onesided=False, scaling='spectrum', axis=-1, mode=['magnitude','angle'])
+
         sample = {'signal_noised': signal_noised, 'signal' : signal}
 
         return sample
