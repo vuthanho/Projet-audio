@@ -3,3 +3,4 @@ data/
 raw_data/
 perso/
 */__pycache__/
+.vscode/

@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+ # -*- coding: utf-8 -*-
 """
 Classe permettant de load les données. Penser pour être utilisé avec un
 itérateur comme le dataloader de pytorch
