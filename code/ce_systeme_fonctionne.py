@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 """
 Created on Tue Nov 26 16:22:59 2019
-
+https://pytorch.org/tutorials/beginner/pytorch_with_examples.html
 @author: Loïc
 """
 from code.speechdataset import SpeechDataset
-from perso.twoLayerNet import TwoLayerNet
+from code.twoLayerNet import TwoLayerNet
 
 import os
 import matplotlib.pyplot as plt
@@ -103,7 +103,7 @@ criterion = torch.nn.MSELoss(reduction='sum')
 
 #decente par gradient, avoir si on prend autre chose
 optimizer = torch.optim.SGD(model.parameters(), lr= learning_rate)
-
+loss_vector = np.zeros(n_batches)
 for epoch in range(n_iterations):
     
     print(epoch)
@@ -124,7 +124,7 @@ for epoch in range(n_iterations):
     
         # Compute and print loss
         loss = criterion(y_pred, y)
-        
+        loss_vector[i]=loss.item()
         
         #backward → calcul les grads
         loss.backward()
