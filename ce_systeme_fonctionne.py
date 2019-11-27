@@ -136,4 +136,7 @@ for epoch in range(n_iterations):
 
     if epoch % 100 == 99:
             print(epoch, loss.item())
-
+#test=y_pred[0]
+#test=test.cpu().detach().numpy()
+#ref=y[0]
+#ref=ref.cpu().detach().numpy()

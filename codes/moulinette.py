@@ -28,7 +28,8 @@ import matplotlib.pyplot as plt
 import winsound
 import random
 import math
-import toolkit as tk
+from codes.toolkit import psnr, reverse_psnr
+
 
 
 #Fonction
@@ -83,7 +84,7 @@ def bruit_random(PSNR,chemin_bruit,chemin_soure,chemin_resultat):
                 bruit_random = bruit_random / math.sqrt(np.mean( np.power(bruit_random,2) ))
 
                 # Ajout du bruit en fonction du PSNR choisi
-                g = tk.reverse_psnr(PSNR,s,bruit_random)
+                g = reverse_psnr(PSNR,s,bruit_random)
                 signal_bruite = s + g*bruit_random
 
                 # Préparation à la conversion en int16
@@ -146,7 +147,7 @@ des signaux bruités.
 chemin_bruit=dir_path+"/../data/babble.wav"
 # Le psnr correspond est choisi de telle façon à ce que psnr(s,s+g*b) = PSNR
 # où s et b sont normalisés
-PSNR = 25
+PSNR = 50
 
 chemin_soure=dir_path+"/../data/data_test"
 chemin_resultat=dir_path+"/../data/data_test_bruit"
