@@ -147,7 +147,7 @@ des signaux bruités.
 chemin_bruit=dir_path+"/../data/babble.wav"
 # Le psnr correspond est choisi de telle façon à ce que psnr(s,s+g*b) = PSNR
 # où s et b sont normalisés
-PSNR = 40
+PSNR = 35
 
 chemin_soure=dir_path+"/../data/data_test"
 chemin_resultat=dir_path+"/../data/data_test_bruit"

@@ -2,6 +2,12 @@
 """
 Classe permettant de load les données. Penser pour être utilisé avec un
 itérateur comme le dataloader de pytorch
+Le but est de récupérer pour le train le module du spectrogramme
+et pour le test le module et la phase
+
+exemple :
+    -testset = SpeechDataset(test_bruit_path, test_path, transform=['reshape','normalisation','test','tensor_cuda'])
+    -trainset = SpeechDataset(train_bruit_path, train_path, transform=['reshape','normalisation','train','tensor_cuda'])
 """
 import os
 import torch
@@ -63,6 +69,8 @@ class SpeechDataset(object):
             signal = toolkit.totensor(signal)
             
         if 'tensor_cuda' in self.transform:
+            signal_noised = toolkit.totensor(signal_noised)
+            signal = toolkit.totensor(signal)
             signal_noised=signal_noised.to(torch.device("cuda:0"))
             signal=signal.to(torch.device("cuda:0"))
             
@@ -74,9 +82,28 @@ class SpeechDataset(object):
             fs=16000
             nperseg = floor(0.03*fs)
             noverlap=nperseg//2
-            signal_noised = spectrogram(signal_noised, fs=fs, window=('tukey', 0.25), nperseg=nperseg, noverlap=noverlap, nfft=None, detrend=False, return_onesided=False, scaling='spectrum', axis=-1, mode=['magnitude','angle'])
-            signal = spectrogram(signal, fs=fs, window=('tukey', 0.25), nperseg=nperseg, noverlap=noverlap, nfft=None, detrend=False, return_onesided=False, scaling='spectrum', axis=-1, mode=['magnitude','angle'])
-        sample = {'signal_noised': signal_noised, 'signal' : signal}
+            signal_noised = spectrogram(signal_noised, fs=fs, window=('tukey', 0.25), nperseg=nperseg, noverlap=noverlap, nfft=None, detrend=False, return_onesided=False, scaling='spectrum', axis=-1, mode=['magnitude'])
+            signal = spectrogram(signal, fs=fs, window=('tukey', 0.25), nperseg=nperseg, noverlap=noverlap, nfft=None, detrend=False, return_onesided=False, scaling='spectrum', axis=-1, mode=['magnitude'])
+        
+        if 'train' in self.transform:
+            fs=16000
+            nperseg = floor(0.03*fs)
+            noverlap=nperseg//2
+            signal_noised = spectrogram(signal_noised, fs=fs, window=('tukey', 0.25), nperseg=nperseg, noverlap=noverlap, nfft=None, detrend=False, return_onesided=False, scaling='spectrum', axis=-1, mode=['magnitude'])
+            signal = spectrogram(signal, fs=fs, window=('tukey', 0.25), nperseg=nperseg, noverlap=noverlap, nfft=None, detrend=False, return_onesided=False, scaling='spectrum', axis=-1, mode=['magnitude'])
+            sample = {'signal_noised': signal_noised, 'signal' : signal}
+        
+        if 'test' in self.transform:
+            fs=16000
+            nperseg = floor(0.03*fs)
+            noverlap=nperseg//2
+            signal_noised = spectrogram(signal_noised, fs=fs, window=('tukey', 0.25), nperseg=nperseg, noverlap=noverlap, nfft=None, detrend=False, return_onesided=False, scaling='spectrum', axis=-1, mode=['magnitude'])
+            signal = spectrogram(signal, fs=fs, window=('tukey', 0.25), nperseg=nperseg, noverlap=noverlap, nfft=None, detrend=False, return_onesided=False, scaling='spectrum', axis=-1, mode=['magnitude'])
+            angle_noised = spectrogram(signal_noised, fs=fs, window=('tukey', 0.25), nperseg=nperseg, noverlap=noverlap, nfft=None, detrend=False, return_onesided=False, scaling='spectrum', axis=-1, mode=['angle'])
+            sample = {'signal_noised': signal_noised, 'signal' : signal, 'angle' : angle_noised}
+        
+        
+        
 
         return sample
     # istft(Zxx, fs=1.0, window='hann', nperseg=None, noverlap=None, nfft=None, input_onesided=True, boundary=True, time_axis=-1, freq_axis=-2)
