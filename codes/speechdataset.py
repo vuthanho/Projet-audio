@@ -57,8 +57,8 @@ class SpeechDataset(object):
                 file_name= os.path.join(self.root_dir, file)
             i=i+1
         
-        fs_noised, signal_noised = wavfile.read(file_name_noised)
-        fs, signal = wavfile.read(file_name)
+        _, signal_noised = wavfile.read(file_name_noised)
+        _, signal = wavfile.read(file_name)
 
         if 'reshape' in self.transform:
             signal_noised = toolkit.reshape(signal_noised, self.max_len)
@@ -82,17 +82,17 @@ class SpeechDataset(object):
             fs=16000
             nperseg = floor(0.03*fs)
             noverlap=nperseg//2
-            _,_,signal_noised = spectrogram(signal_noised, fs=fs, window=('tukey', 0.25), nperseg=nperseg, noverlap=noverlap, nfft=None, detrend=False, return_onesided=True, scaling='spectrum', axis=-1, mode=['magnitude'])
-            _,_,signal = spectrogram(signal, fs=fs, window=('tukey', 0.25), nperseg=nperseg, noverlap=noverlap, nfft=None, detrend=False, return_onesided=True, scaling='spectrum', axis=-1, mode=['magnitude'])
+            _,_,signal_noised = spectrogram(signal_noised, fs=fs, window='hann', nperseg=nperseg, noverlap=noverlap, nfft=None, detrend=False, return_onesided=True, scaling='spectrum', axis=-1, mode=['magnitude'])
+            _,_,signal = spectrogram(signal, fs=fs, window='hann', nperseg=nperseg, noverlap=noverlap, nfft=None, detrend=False, return_onesided=True, scaling='spectrum', axis=-1, mode=['magnitude'])
             sample = {'signal_noised': signal_noised, 'signal' : signal}
         
         if 'test' in self.transform:
             fs=16000
             nperseg = floor(0.03*fs)
             noverlap=nperseg//2
-            _,_,signal_noised = spectrogram(signal_noised, fs=fs, window=('tukey', 0.25), nperseg=nperseg, noverlap=noverlap, nfft=None, detrend=False, return_onesided=True, scaling='spectrum', axis=-1, mode=['magnitude'])
-            _,_,signal = spectrogram(signal, fs=fs, window=('tukey', 0.25), nperseg=nperseg, noverlap=noverlap, nfft=None, detrend=False, return_onesided=True, scaling='spectrum', axis=-1, mode=['magnitude'])
-            angle_noised = spectrogram(signal_noised, fs=fs, window=('tukey', 0.25), nperseg=nperseg, noverlap=noverlap, nfft=None, detrend=False, return_onesided=True, scaling='spectrum', axis=-1, mode=['angle'])
+            _,_,signal_noised = spectrogram(signal_noised, fs=fs, window='hann', nperseg=nperseg, noverlap=noverlap, nfft=None, detrend=False, return_onesided=True, scaling='spectrum', axis=-1, mode=['magnitude'])
+            _,_,signal = spectrogram(signal, fs=fs, window='hann', nperseg=nperseg, noverlap=noverlap, nfft=None, detrend=False, return_onesided=True, scaling='spectrum', axis=-1, mode=['magnitude'])
+            _,_,angle_noised = spectrogram(signal_noised, fs=fs, window='hann', nperseg=nperseg, noverlap=noverlap, nfft=None, detrend=False, return_onesided=True, scaling='spectrum', axis=-1, mode=['angle'])
             sample = {'signal_noised': signal_noised, 'signal' : signal, 'angle' : angle_noised}
         
         
