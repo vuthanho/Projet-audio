@@ -22,7 +22,7 @@ from torch.autograd import variable
 attention ! il faut vérifier que sa donne un résultat entier nb de fichier 
 divisé par batch_size (enfin je pense)
 """
-batch_size=40
+batch_size=10
 
 #get the workspace path
 dir_path = os.path.dirname(os.path.realpath(__file__))
@@ -30,7 +30,7 @@ cwd = os.getcwd()
 #DL training set
 train_bruit_path = cwd+'/data/data_train_bruit'
 train_path = cwd+'/data/data_train'
-trainset = SpeechDataset(train_bruit_path, train_path, transform=['reshape','tensor','normalisation','tensor_cuda'])
+trainset = SpeechDataset(train_bruit_path, train_path, transform=['reshape','normalisation','train','tensor_cuda'])
 #train_bruit_set = fulltrainset[1]
 #training set loader
 """
@@ -40,15 +40,15 @@ batch_size).
 - shuffle : importer les échantillons de manière aléatoire
 - num_workers : nombre de coeur du processeur utilisés 
 """
-trainloader=torch.utils.data.DataLoader(trainset, batch_size=batch_size, shuffle=False, num_workers=0)
+trainloader=torch.utils.data.DataLoader(trainset, batch_size=batch_size, shuffle=True, num_workers=0)
 
 #DL test set
 test_bruit_path = cwd+'/data/data_test_bruit'
 test_path = cwd+'/data/data_test'
-testset = SpeechDataset(test_bruit_path, test_path, transform=['reshape','tensor','normalisation','tensor_cuda'])
+testset =  SpeechDataset(test_bruit_path, test_path, transform=['reshape','normalisation','test','tensor_cuda'])
 
 #training set loader
-testloader=torch.utils.data.DataLoader(testset, batch_size=batch_size, shuffle=False, num_workers=0)
+testloader=torch.utils.data.DataLoader(testset, batch_size=batch_size, shuffle=True, num_workers=0)
 
 #function to show signal
 def sigshow(matrice):
@@ -68,9 +68,9 @@ n_batches=len(dataiter)
 
 #get next batch
 data = dataiter.next()
-#matrice contenant les 4 premiers signaux de ref
+#matrice contenant les x premiers spectro de ref
 reference = data.get("signal")
-#matrice contenant les 4 premiers signaux bruité correspondant
+#matrice contenant les x premiers spectro bruité correspondant
 bruit = data.get("signal_noised")
 
 #show signaux référence
