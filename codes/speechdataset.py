@@ -75,7 +75,8 @@ class SpeechDataset(object):
             nperseg = floor(0.03*fs)
             noverlap=nperseg//2
             signal_noised = spectrogram(signal_noised, fs=fs, window=('tukey', 0.25), nperseg=nperseg, noverlap=noverlap, nfft=None, detrend=False, return_onesided=False, scaling='spectrum', axis=-1, mode=['magnitude','angle'])
-
+            signal = spectrogram(signal, fs=fs, window=('tukey', 0.25), nperseg=nperseg, noverlap=noverlap, nfft=None, detrend=False, return_onesided=False, scaling='spectrum', axis=-1, mode=['magnitude','angle'])
         sample = {'signal_noised': signal_noised, 'signal' : signal}
 
         return sample
+    # istft(Zxx, fs=1.0, window='hann', nperseg=None, noverlap=None, nfft=None, input_onesided=True, boundary=True, time_axis=-1, freq_axis=-2)
