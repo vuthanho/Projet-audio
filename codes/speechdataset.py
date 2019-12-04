@@ -77,29 +77,22 @@ class SpeechDataset(object):
         if 'normalisation' in self.transform:
             signal_noised = toolkit.normalise(signal_noised)
             signal = toolkit.normalise(signal)
-
-        if 'spectrogram' in self.transform:
-            fs=16000
-            nperseg = floor(0.03*fs)
-            noverlap=nperseg//2
-            signal_noised = spectrogram(signal_noised, fs=fs, window=('tukey', 0.25), nperseg=nperseg, noverlap=noverlap, nfft=None, detrend=False, return_onesided=False, scaling='spectrum', axis=-1, mode=['magnitude'])
-            signal = spectrogram(signal, fs=fs, window=('tukey', 0.25), nperseg=nperseg, noverlap=noverlap, nfft=None, detrend=False, return_onesided=False, scaling='spectrum', axis=-1, mode=['magnitude'])
         
         if 'train' in self.transform:
             fs=16000
             nperseg = floor(0.03*fs)
             noverlap=nperseg//2
-            signal_noised = spectrogram(signal_noised, fs=fs, window=('tukey', 0.25), nperseg=nperseg, noverlap=noverlap, nfft=None, detrend=False, return_onesided=False, scaling='spectrum', axis=-1, mode=['magnitude'])
-            signal = spectrogram(signal, fs=fs, window=('tukey', 0.25), nperseg=nperseg, noverlap=noverlap, nfft=None, detrend=False, return_onesided=False, scaling='spectrum', axis=-1, mode=['magnitude'])
+            signal_noised = spectrogram(signal_noised, fs=fs, window=('tukey', 0.25), nperseg=nperseg, noverlap=noverlap, nfft=None, detrend=False, return_onesided=True, scaling='spectrum', axis=-1, mode=['magnitude'])
+            signal = spectrogram(signal, fs=fs, window=('tukey', 0.25), nperseg=nperseg, noverlap=noverlap, nfft=None, detrend=False, return_onesided=True, scaling='spectrum', axis=-1, mode=['magnitude'])
             sample = {'signal_noised': signal_noised, 'signal' : signal}
         
         if 'test' in self.transform:
             fs=16000
             nperseg = floor(0.03*fs)
             noverlap=nperseg//2
-            signal_noised = spectrogram(signal_noised, fs=fs, window=('tukey', 0.25), nperseg=nperseg, noverlap=noverlap, nfft=None, detrend=False, return_onesided=False, scaling='spectrum', axis=-1, mode=['magnitude'])
-            signal = spectrogram(signal, fs=fs, window=('tukey', 0.25), nperseg=nperseg, noverlap=noverlap, nfft=None, detrend=False, return_onesided=False, scaling='spectrum', axis=-1, mode=['magnitude'])
-            angle_noised = spectrogram(signal_noised, fs=fs, window=('tukey', 0.25), nperseg=nperseg, noverlap=noverlap, nfft=None, detrend=False, return_onesided=False, scaling='spectrum', axis=-1, mode=['angle'])
+            signal_noised = spectrogram(signal_noised, fs=fs, window=('tukey', 0.25), nperseg=nperseg, noverlap=noverlap, nfft=None, detrend=False, return_onesided=True, scaling='spectrum', axis=-1, mode=['magnitude'])
+            signal = spectrogram(signal, fs=fs, window=('tukey', 0.25), nperseg=nperseg, noverlap=noverlap, nfft=None, detrend=False, return_onesided=True, scaling='spectrum', axis=-1, mode=['magnitude'])
+            angle_noised = spectrogram(signal_noised, fs=fs, window=('tukey', 0.25), nperseg=nperseg, noverlap=noverlap, nfft=None, detrend=False, return_onesided=True, scaling='spectrum', axis=-1, mode=['angle'])
             sample = {'signal_noised': signal_noised, 'signal' : signal, 'angle' : angle_noised}
         
         
