@@ -46,4 +46,4 @@ def totensor_cuda(signal):
     
 def normalise(tensor):
     tensor_minusmean = tensor - tensor.mean()
-    return tensor_minusmean/tensor_minusmean.abs().max()
+    return tensor_minusmean/np.amax(np.absolute(tensor_minusmean))
