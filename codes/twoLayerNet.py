@@ -16,14 +16,18 @@ class TwoLayerNet(torch.nn.Module):
         - H = hidden dimension; D_out = output dimension.
         """
         super(TwoLayerNet, self).__init__()
-        self.linear1 = torch.nn.Linear(D_in, H).cuda()
-        self.linear2 = torch.nn.Linear(H, D_out).cuda()
+        self.first_conv = torch.nn.Conv2d(D_in, H, 5)
+        self.second_conv = torch.nn.Conv2d(H, D_out, 5)
+        # self.first_fully_c = torch.nn.Linear(H,1)
         
     #forward : calcul a partir de l'entrée la sortie du réseau en appliquant les différentes couches successif définis dans le constructeur
     def forward(self, x):
 #        x=x.to(torch.device("cuda:0"))
-        h_relu = self.linear1(x).relu()
-        y_pred = self.linear2(h_relu)
-        return y_pred
+        x = torch.nn.functional.relu(self.first_conv(x))
+        x = torch.nn.functional.relu(self.second_conv(x))
+        # x = x.view(-1, 24363600)
+        # x = torch.nn.functional.relu(self.first_fully_c(x))
+
+        return x
 
 

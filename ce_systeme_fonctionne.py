@@ -67,18 +67,19 @@ dataiter=iter(trainloader)
 n_batches=len(dataiter)
 
 #get next batch
-data = dataiter.next()
+# data = dataiter.next()
 #matrice contenant les x premiers spectro de ref
-reference = data.get("signal")
+# reference = data.get("signal")
 #matrice contenant les x premiers spectro bruité correspondant
-bruit = data.get("signal_noised")
+# bruit = data.get("signal_noised")
 
 #show signaux référence
 #sigshow(reference)
 
 # N is batch size; D_in is input dimension;
 # H is hidden dimension; D_out is output dimension.
-N, D_in, H, D_out = batch_size, data.get("signal").size(1), 100, data.get("signal").size(1)
+# N, D_in, H, D_out = batch_size, data.get("signal").size(1), 100, data.get("signal").size(1)
+N, D_in, H, D_out = batch_size, 1, 20, 1
 
 # Create random Tensors to hold inputs and outputs
 #x = torch.randn(N, D_in)
@@ -110,11 +111,11 @@ for epoch in range(n_iterations):
     average_loss = 0.0
     
     #iter chaque batches
-    for i, data in enumerate(trainloader, 0):
-        y = data.get("signal").cuda()
-        x = data.get("signal_noised").cuda()
-#        x=x.to(torch.device("cuda:0"))
-#        y=y.to(torch.device("cuda:0"))
+    for i, (y,x) in enumerate(trainloader, 0):
+        # y = data.get("signal").cuda()
+        # x = data.get("signal_noised").cuda()
+        x=x.to(torch.device("cuda:0"))
+        y=y.to(torch.device("cuda:0"))
         #init grad
         optimizer.zero_grad()
         
