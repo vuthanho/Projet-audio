@@ -63,10 +63,6 @@ class SpeechDataset(object):
         if 'reshape' in self.transform:
             signal_noised = toolkit.reshape(signal_noised, self.max_len)
             signal = toolkit.reshape(signal, self.max_len)
-        
-        if 'tensor' in self.transform:
-            signal_noised = toolkit.totensor(signal_noised)
-            signal = toolkit.totensor(signal)
             
         if 'normalisation' in self.transform:
             signal_noised = toolkit.normalise(signal_noised)
@@ -88,7 +84,11 @@ class SpeechDataset(object):
             _,_,signal = spectrogram(signal, fs=fs, window='hann', nperseg=nperseg, noverlap=noverlap, nfft=None, detrend=False, return_onesided=True, scaling='spectrum', axis=-1, mode='magnitude')
             _,_,angle_noised = spectrogram(signal_noised, fs=fs, window='hann', nperseg=nperseg, noverlap=noverlap, nfft=None, detrend=False, return_onesided=True, scaling='spectrum', axis=-1, mode='angle')
             sample = {'signal_noised': signal_noised, 'signal' : signal, 'angle' : angle_noised}
-
+        
+        if 'tensor' in self.transform:
+            signal_noised = toolkit.totensor(signal_noised)
+            signal = toolkit.totensor(signal)
+        
         if 'tensor_cuda' in self.transform:
             signal_noised = toolkit.totensor(signal_noised)
             signal = toolkit.totensor(signal)
