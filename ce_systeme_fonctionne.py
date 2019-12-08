@@ -86,7 +86,7 @@ N, D_in, H, D_out = batch_size, data.get("signal").size(1), 100, data.get("signa
 
 # Construct our model by instantiating the class defined above
 model = TwoLayerNet(D_in, H, D_out)
-model.cuda()
+model.double().cuda()
 
 #learning rate
 learning_rate = 0.001
