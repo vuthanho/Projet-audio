@@ -68,12 +68,6 @@ class SpeechDataset(object):
             signal_noised = toolkit.totensor(signal_noised)
             signal = toolkit.totensor(signal)
             
-        if 'tensor_cuda' in self.transform:
-            signal_noised = toolkit.totensor(signal_noised)
-            signal = toolkit.totensor(signal)
-            signal_noised=signal_noised.to(torch.device("cuda:0"))
-            signal=signal.to(torch.device("cuda:0"))
-            
         if 'normalisation' in self.transform:
             signal_noised = toolkit.normalise(signal_noised)
             signal = toolkit.normalise(signal)
@@ -94,9 +88,12 @@ class SpeechDataset(object):
             _,_,signal = spectrogram(signal, fs=fs, window='hann', nperseg=nperseg, noverlap=noverlap, nfft=None, detrend=False, return_onesided=True, scaling='spectrum', axis=-1, mode='magnitude')
             _,_,angle_noised = spectrogram(signal_noised, fs=fs, window='hann', nperseg=nperseg, noverlap=noverlap, nfft=None, detrend=False, return_onesided=True, scaling='spectrum', axis=-1, mode='angle')
             sample = {'signal_noised': signal_noised, 'signal' : signal, 'angle' : angle_noised}
-        
-        
-        
+
+        if 'tensor_cuda' in self.transform:
+            signal_noised = toolkit.totensor(signal_noised)
+            signal = toolkit.totensor(signal)
+            signal_noised=signal_noised.to(torch.device("cuda:0"))
+            signal=signal.to(torch.device("cuda:0"))
 
         return sample
     # istft(Zxx, fs=1.0, window='hann', nperseg=None, noverlap=None, nfft=None, input_onesided=True, boundary=True, time_axis=-1, freq_axis=-2)
