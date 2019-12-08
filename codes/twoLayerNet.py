@@ -22,7 +22,7 @@ class TwoLayerNet(torch.nn.Module):
     #forward : calcul a partir de l'entrée la sortie du réseau en appliquant les différentes couches successif définis dans le constructeur
     def forward(self, x):
 #        x=x.to(torch.device("cuda:0"))
-        h_relu = self.linear1(x).tanh()
+        h_relu = self.linear1(x).relu()
         y_pred = self.linear2(h_relu)
         return y_pred
 

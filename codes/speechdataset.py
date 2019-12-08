@@ -89,11 +89,11 @@ class SpeechDataset(object):
             signal_noised = toolkit.totensor(signal_noised)
             signal = toolkit.totensor(signal)
         
-        if 'tensor_cuda' in self.transform:
-            signal_noised = toolkit.totensor(signal_noised)
-            signal = toolkit.totensor(signal)
-            signal_noised=signal_noised.to(torch.device("cuda:0"))
-            signal=signal.to(torch.device("cuda:0"))
+        # if 'tensor_cuda' in self.transform:
+        #     signal_noised = toolkit.totensor(signal_noised)
+        #     signal = toolkit.totensor(signal)
+        #     signal_noised=signal_noised.to(torch.device("cuda:0"))
+        #     signal=signal.to(torch.device("cuda:0"))
 
         return sample
     # istft(Zxx, fs=1.0, window='hann', nperseg=None, noverlap=None, nfft=None, input_onesided=True, boundary=True, time_axis=-1, freq_axis=-2)

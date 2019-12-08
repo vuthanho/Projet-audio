@@ -111,8 +111,8 @@ for epoch in range(n_iterations):
     
     #iter chaque batches
     for i, data in enumerate(trainloader, 0):
-        y = data.get("signal")
-        x = data.get("signal_noised")
+        y = data.get("signal").cuda()
+        x = data.get("signal_noised").cuda()
 #        x=x.to(torch.device("cuda:0"))
 #        y=y.to(torch.device("cuda:0"))
         #init grad
