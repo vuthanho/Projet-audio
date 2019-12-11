@@ -1,0 +1,4 @@
+https://towardsdatascience.com/batch-normalization-in-neural-networks-1ac91516821c
+https://www.isca-speech.org/archive/Interspeech_2017/pdfs/1465.PDF
+https://www.mathworks.com/help/deeplearning/examples/denoise-speech-using-deep-learning-networks.html
+https://gist.github.com/bigsnarfdude/dde651f6e06f266b48bc3750ac730f80

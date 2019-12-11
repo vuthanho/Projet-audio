@@ -121,9 +121,13 @@ for epoch in range(n_iterations):
         
         # Forward pass: Compute predicted y by passing x to the model
         y_pred = model(x)
-    
+        print(i)
+        if i==10:
+            plt.pcolormesh(y_pred[1][0].cpu().detach().numpy())
+            plt.show()
+            print()
         # Compute and print loss
-        loss = criterion(y_pred, y)
+        loss = criterion(y_pred, y[:,:,4:-4,4:-4])
         loss_vector[i]=loss.item()
         
         #backward → calcul les grads
