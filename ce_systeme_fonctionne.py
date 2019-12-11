@@ -5,7 +5,7 @@ https://pytorch.org/tutorials/beginner/pytorch_with_examples.html
 @author: Loïc
 """
 from codes.speechdataset import SpeechDataset
-from codes.twoLayerNet import TwoLayerNet
+from codes.twoLayerNet import FCN
 
 import os
 import matplotlib.pyplot as plt
@@ -22,7 +22,7 @@ from torch.autograd import variable
 attention ! il faut vérifier que sa donne un résultat entier nb de fichier 
 divisé par batch_size (enfin je pense)
 """
-batch_size=10
+batch_size=5
 
 #get the workspace path
 dir_path = os.path.dirname(os.path.realpath(__file__))
@@ -86,7 +86,7 @@ N, D_in, H, D_out = batch_size, 1, 20, 1
 #y = torch.randn(N, D_out)
 
 # Construct our model by instantiating the class defined above
-model = TwoLayerNet(D_in, H, D_out)
+model = FCN()
 model.double().cuda()
 
 #learning rate
@@ -99,8 +99,8 @@ n_iterations = 1
 # Construct our loss function and an Optimizer. The call to model.parameters()
 # in the SGD constructor will contain the learnable parameters of the two
 # nn.Linear modules which are members of the model.
-criterion = torch.nn.MSELoss(reduction='sum')
-
+criterion = torch.nn.MSELoss(reduction='mean')
+torch.backends.cudnn.enabled = True
 #decente par gradient, avoir si on prend autre chose
 optimizer = torch.optim.SGD(model.parameters(), lr= learning_rate)
 loss_vector = np.zeros(n_batches)
@@ -114,22 +114,27 @@ for epoch in range(n_iterations):
     for i, (y,x) in enumerate(trainloader, 0):
         # y = data.get("signal").cuda()
         # x = data.get("signal_noised").cuda()
-        x=x.to(torch.device("cuda:0"))
-        y=y.to(torch.device("cuda:0"))
+        x=x.cuda()
+        y=y.cuda()
         #init grad
         optimizer.zero_grad()
         
         # Forward pass: Compute predicted y by passing x to the model
         y_pred = model(x)
+        # print(y.shape[2:4])
+        # torch.nn.utils.rnn.pad_packed_sequence(y_pred, batch_first=True, padding_value=0.0, total_length=y.shape[2:4])
+        # y_pred = torch.nn.utils.rnn.pack_padded_sequence(y_pred, y.shape[2:4], batch_first=True, enforce_sorted=False)
         print(i)
         if i==10:
-            plt.pcolormesh(y_pred[1][0].cpu().detach().numpy())
-            plt.show()
+            for k in range(10):
+                plt.pcolormesh(y_pred[k][0].cpu().detach().numpy())
+                plt.show()
             print()
         # Compute and print loss
-        loss = criterion(y_pred, y[:,:,4:-4,4:-4])
+        # loss = criterion(y_pred, y[:,:,4:-3,4:-3])
+        loss = criterion(torch.squeeze(y_pred), torch.squeeze(y))
         loss_vector[i]=loss.item()
-        
+        print(loss_vector[i])
         #backward → calcul les grads
         loss.backward()
         
