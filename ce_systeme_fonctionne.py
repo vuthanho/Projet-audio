@@ -11,10 +11,7 @@ import os
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
-import torchvision
-import torch.nn as nn
-import torch.optim as optim
-from torch.autograd import variable
+
 
 
 #Batch size (permet de travailler avec plusieurs sample en même temps )
@@ -22,7 +19,7 @@ from torch.autograd import variable
 attention ! il faut vérifier que sa donne un résultat entier nb de fichier 
 divisé par batch_size (enfin je pense)
 """
-batch_size=5
+batch_size=15
 
 #get the workspace path
 dir_path = os.path.dirname(os.path.realpath(__file__))
@@ -31,7 +28,7 @@ cwd = os.getcwd()
 train_bruit_path = cwd+'/data/data_train_bruit'
 train_path = cwd+'/data/data_train'
 trainset = SpeechDataset(train_bruit_path, train_path, transform=['reshape','normalisation','train','tensor_cuda'])
-#train_bruit_set = fulltrainset[1]
+
 #training set loader
 """
 Le data loader est une fonction qui permet d'importer les données de manière itératifs, 
@@ -50,52 +47,22 @@ testset =  SpeechDataset(test_bruit_path, test_path, transform=['reshape','norma
 #training set loader
 testloader=torch.utils.data.DataLoader(testset, batch_size=batch_size, shuffle=True, num_workers=0)
 
-#function to show signal
-def sigshow(matrice):
-    #a faire construire un vecteur t en fonction de length et fs
-    matrice=matrice.numpy()
-    for i in range(len(matrice)):
-        plt.subplot(len(matrice),1,i+1)
-        plt.plot(matrice[i])
-        
-    plt.show()
-    
 #data set as iterator
 dataiter=iter(trainloader)
 
 #nombre de batches totales présent dans notre sytèmes
 n_batches=len(dataiter)
 
-#get next batch
-# data = dataiter.next()
-#matrice contenant les x premiers spectro de ref
-# reference = data.get("signal")
-#matrice contenant les x premiers spectro bruité correspondant
-# bruit = data.get("signal_noised")
-
-#show signaux référence
-#sigshow(reference)
-
-# N is batch size; D_in is input dimension;
-# H is hidden dimension; D_out is output dimension.
-# N, D_in, H, D_out = batch_size, data.get("signal").size(1), 100, data.get("signal").size(1)
-N, D_in, H, D_out = batch_size, 1, 20, 1
-
-# Create random Tensors to hold inputs and outputs
-#x = torch.randn(N, D_in)
-#y = torch.randn(N, D_out)
-
 # Construct our model by instantiating the class defined above
 model = FCN()
 model.double().cuda()
 
 #learning rate
-learning_rate = 0.001
+learning_rate = 0.0001
 
 
 #nb d'iter → nombre epoch
-n_iterations = 1
-
+n_iterations = 10
 # Construct our loss function and an Optimizer. The call to model.parameters()
 # in the SGD constructor will contain the learnable parameters of the two
 # nn.Linear modules which are members of the model.
@@ -103,50 +70,63 @@ criterion = torch.nn.MSELoss(reduction='mean')
 torch.backends.cudnn.enabled = True
 #decente par gradient, avoir si on prend autre chose
 optimizer = torch.optim.SGD(model.parameters(), lr= learning_rate)
-loss_vector = np.zeros(n_batches)
+loss_vector = np.zeros(n_iterations)
+
+
 for epoch in range(n_iterations):
     
     print(epoch)
+    data_train = dataiter.next()
+    x,y=data_train
+    x=x.to(torch.device("cuda:0"))
+    y=y.to(torch.device("cuda:0"))
+    
     #Average loss during training
     average_loss = 0.0
     
-    #iter chaque batches
-    for i, (y,x) in enumerate(trainloader, 0):
-        # y = data.get("signal").cuda()
-        # x = data.get("signal_noised").cuda()
-        x=x.cuda()
-        y=y.cuda()
-        #init grad
-        optimizer.zero_grad()
+    #init grad
+    optimizer.zero_grad()
         
-        # Forward pass: Compute predicted y by passing x to the model
-        y_pred = model(x)
-        # print(y.shape[2:4])
-        # torch.nn.utils.rnn.pad_packed_sequence(y_pred, batch_first=True, padding_value=0.0, total_length=y.shape[2:4])
-        # y_pred = torch.nn.utils.rnn.pack_padded_sequence(y_pred, y.shape[2:4], batch_first=True, enforce_sorted=False)
-        print(i)
-        if i==10:
-            for k in range(10):
-                plt.pcolormesh(y_pred[k][0].cpu().detach().numpy())
-                plt.show()
-            print()
-        # Compute and print loss
-        # loss = criterion(y_pred, y[:,:,4:-3,4:-3])
-        loss = criterion(torch.squeeze(y_pred), torch.squeeze(y))
-        loss_vector[i]=loss.item()
-        print(loss_vector[i])
-        #backward → calcul les grads
-        loss.backward()
-        
-        #optimise → applique les grad trouvées au différent params (update weights)
-        optimizer.step()
-        
-        #maj loss → pas sur de la syntaxe
-        average_loss += loss.data
+    # Forward pass: Compute predicted y by passing x to the model
+    y_pred = model(x)
 
-    if epoch % 100 == 99:
-            print(epoch, loss.item())
-#test=y_pred[0]
-#test=test.cpu().detach().numpy()
-#ref=y[0]
-#ref=ref.cpu().detach().numpy()
+    # Compute and print loss
+    loss = criterion(torch.squeeze(y_pred), torch.squeeze(y))
+    loss_vector[epoch]=loss.item()
+    print(loss_vector[epoch])
+    #backward → calcul les grads
+    loss.backward()
+        
+    #optimise → applique les grad trouvées au différent params (update weights)
+    optimizer.step()
+        
+    #maj loss → pas sur de la syntaxe
+    average_loss += loss.data
+
+
+
+data_test_iter=iter(testloader)
+data_test = data_test_iter.next()
+x,y,a=data_test
+x=x.to(torch.device("cuda:0"))
+y=y.to(torch.device("cuda:0"))
+a=a.to(torch.device("cuda:0"))
+y_pred = model(x)
+
+
+from scipy.io import wavfile #for audio processing
+import scipy.signal as sig
+from math import floor
+
+def signal_reconsctructed(y_pred,a,indice):
+    fs=16000
+    nperseg = floor(0.03*fs)
+    noverlap=nperseg//2
+    module_s=y_pred[indice][0].cpu().detach().numpy()
+    phase_s=a[indice][0].cpu().detach().numpy()
+    Zxx = module_s*(np.exp(1j*phase_s))
+    _,reconstructed = sig.istft(Zxx, fs=fs, window='hann', nperseg=nperseg, noverlap=noverlap, nfft=None, input_onesided=True, boundary=True, time_axis=-1, freq_axis=-2)
+    reconstructed = 20*np.int16(reconstructed)
+    wavfile.write('signal_denoise_'+str(indice)+'.wav',fs,reconstructed)
+
+signal_reconsctructed(y_pred,a,0)
