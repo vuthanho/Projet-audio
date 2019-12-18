@@ -45,6 +45,9 @@ class FCN(torch.nn.Module):
     def forward(self, x):
         x = self.firstlayer(x)
         x = self.hiddenlayer(x)
+        x = self.hiddenlayer(x)
+        x = self.hiddenlayer(x)
+        x = self.hiddenlayer(x)
         x = self.lastlayer(x)
         return x
 
