@@ -64,6 +64,10 @@ class SpeechDataset(object):
             signal_noised = toolkit.reshape(signal_noised, self.max_len)
             signal = toolkit.reshape(signal, self.max_len)
             
+        if 'cut&sousech' in self.transform:
+            signal_noised = toolkit.cut_ech(signal_noised)
+            signal = toolkit.cut_ech(signal)
+            
         if 'normalisation' in self.transform:
             signal_noised = toolkit.normalise(signal_noised)
             signal = toolkit.normalise(signal)
