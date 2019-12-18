@@ -27,7 +27,7 @@ cwd = os.getcwd()
 #DL training set
 train_bruit_path = cwd+'/data/data_train_bruit'
 train_path = cwd+'/data/data_train'
-trainset = SpeechDataset(train_bruit_path, train_path, transform=['reshape','normalisation','train','tensor_cuda'])
+trainset = SpeechDataset(train_bruit_path, train_path, transform=['reshape','cut&sousech','normalisation','train','tensor_cuda'])
 
 #training set loader
 """
@@ -62,7 +62,7 @@ learning_rate = 0.001
 
 
 #nb d'iter → nombre epoch
-n_iterations = 50
+n_iterations = 2
 # Construct our loss function and an Optimizer. The call to model.parameters()
 # in the SGD constructor will contain the learnable parameters of the two
 # nn.Linear modules which are members of the model.
