@@ -70,7 +70,7 @@ class SpeechDataset(object):
         
         if 'train' in self.transform:
             fs=16000
-            nperseg = floor(0.03*fs)
+            nperseg = 256#floor(0.03*fs)
             noverlap=nperseg//2
             _,_,signal_noised = spectrogram(signal_noised, fs=fs, window='hann', nperseg=nperseg, noverlap=noverlap, nfft=None, detrend=False, return_onesided=True, scaling='spectrum', axis=-1, mode='magnitude')
             _,_,signal = spectrogram(signal, fs=fs, window='hann', nperseg=nperseg, noverlap=noverlap, nfft=None, detrend=False, return_onesided=True, scaling='spectrum', axis=-1, mode='magnitude')
@@ -81,11 +81,12 @@ class SpeechDataset(object):
         
         if 'test' in self.transform:
             fs=16000
-            nperseg = floor(0.03*fs)
+            nperseg = 256 #floor(0.03*fs)
             noverlap=nperseg//2
+            temp=signal_noised
             _,_,signal_noised = spectrogram(signal_noised, fs=fs, window='hann', nperseg=nperseg, noverlap=noverlap, nfft=None, detrend=False, return_onesided=True, scaling='spectrum', axis=-1, mode='magnitude')
             _,_,signal = spectrogram(signal, fs=fs, window='hann', nperseg=nperseg, noverlap=noverlap, nfft=None, detrend=False, return_onesided=True, scaling='spectrum', axis=-1, mode='magnitude')
-            _,_,angle_noised = spectrogram(signal_noised, fs=fs, window='hann', nperseg=nperseg, noverlap=noverlap, nfft=None, detrend=False, return_onesided=True, scaling='spectrum', axis=-1, mode='angle')
+            _,_,angle_noised = spectrogram(temp, fs=fs, window='hann', nperseg=nperseg, noverlap=noverlap, nfft=None, detrend=False, return_onesided=True, scaling='spectrum', axis=-1, mode='angle')
             # sample = {'signal_noised': signal_noised, 'signal' : signal, 'angle' : angle_noised}
             signal = signal[None,...]
             signal_noised = signal_noised[None,...]

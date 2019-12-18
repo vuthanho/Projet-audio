@@ -19,7 +19,7 @@ import torch
 attention ! il faut vérifier que sa donne un résultat entier nb de fichier 
 divisé par batch_size (enfin je pense)
 """
-batch_size=5
+batch_size=40
 
 #get the workspace path
 dir_path = os.path.dirname(os.path.realpath(__file__))
@@ -78,6 +78,7 @@ for epoch in range(n_iterations):
     print(epoch)
     data_train = dataiter.next()
     x,y=data_train
+    dataiter=iter(trainloader)
     x=x.to(torch.device("cuda:0"))
     y=y.to(torch.device("cuda:0"))
     
@@ -129,4 +130,4 @@ def signal_reconsctructed(y_pred,a,indice):
     reconstructed = np.int16(reconstructed/np.amax(np.absolute(reconstructed))*2**15)
     wavfile.write('signal_denoise_'+str(indice)+'.wav',fs,reconstructed)
 
-signal_reconsctructed(y_pred,a,0)
+#signal_reconsctructed(y_pred,a,0)

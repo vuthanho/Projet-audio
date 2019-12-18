@@ -36,6 +36,12 @@ def reshape(signal, max_len):
     "add zero padding"
     zero=np.zeros(max_len-len(signal))
     resultat=np.concatenate((signal,zero))
+    
+    #save les 2 1ere s
+    resultat=resultat[0:2*16000]
+    
+    #sous ech 8khz
+    resultat=resultat[0:len(resultat):2]
     return resultat
 
 def totensor(signal):
