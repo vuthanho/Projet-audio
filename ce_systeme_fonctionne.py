@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+
 """
 Created on Tue Nov 26 16:22:59 2019
 https://pytorch.org/tutorials/beginner/pytorch_with_examples.html
@@ -11,15 +12,14 @@ import os
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
-
-
+import sys
 
 #Batch size (permet de travailler avec plusieurs sample en même temps )
 """
 attention ! il faut vérifier que sa donne un résultat entier nb de fichier 
 divisé par batch_size (enfin je pense)
 """
-batch_size=40
+batch_size=10
 
 #get the workspace path
 dir_path = os.path.dirname(os.path.realpath(__file__))
@@ -42,7 +42,7 @@ trainloader=torch.utils.data.DataLoader(trainset, batch_size=batch_size, shuffle
 #DL test set
 test_bruit_path = cwd+'/data/data_test_bruit'
 test_path = cwd+'/data/data_test'
-testset =  SpeechDataset(test_bruit_path, test_path, transform=['reshape','normalisation','test','tensor_cuda'])
+testset =  SpeechDataset(test_bruit_path, test_path, transform=['reshape','cut&sousech','normalisation','test','tensor_cuda'])
 
 #training set loader
 testloader=torch.utils.data.DataLoader(testset, batch_size=batch_size, shuffle=True, num_workers=0)
@@ -55,79 +55,106 @@ n_batches=len(dataiter)
 
 # Construct our model by instantiating the class defined above
 model = FCN()
+def init_normal(m):
+        if type(m) == torch.nn.Linear:
+            torch.nn.init.dirac_(m.weight, std=0.01)
+model.apply(init_normal)
 model.double().cuda()
 
 #learning rate
-learning_rate = 0.001
+learning_rate = 1e-3
 
 
 #nb d'iter → nombre epoch
-n_iterations = 2
+n_iterations = 5000
 # Construct our loss function and an Optimizer. The call to model.parameters()
 # in the SGD constructor will contain the learnable parameters of the two
 # nn.Linear modules which are members of the model.
-criterion = torch.nn.L1Loss()
+criterion = torch.nn.MSELoss(reduction='sum')
 torch.backends.cudnn.enabled = True
 #decente par gradient, avoir si on prend autre chose
-optimizer = torch.optim.SGD(model.parameters(), lr= learning_rate)
+# optimizer = torch.optim.SGD(model.parameters(), lr= learning_rate)
+optimizer = torch.optim.Adadelta(model.parameters(),lr=learning_rate)
 loss_vector = np.zeros(n_iterations)
 
+# for epoch in range(n_iterations):
+#     print(epoch)
 
 for epoch in range(n_iterations):
     
-    print(epoch)
+    print(epoch,flush=True)
+    sys.stdout.flush()
     data_train = dataiter.next()
     x,y=data_train
     dataiter=iter(trainloader)
     x=x.to(torch.device("cuda:0"))
     y=y.to(torch.device("cuda:0"))
-    
-    #Average loss during training
-    average_loss = 0.0
-    
-    #init grad
-    optimizer.zero_grad()
         
     # Forward pass: Compute predicted y by passing x to the model
-    y_pred = model(x)
+    for subpart in range (124-8):
 
-    # Compute and print loss
-    loss = criterion(torch.squeeze(y_pred), torch.squeeze(y))
-    loss_vector[epoch]=loss.item()
-    print(loss_vector[epoch])
-    #backward → calcul les grads
-    loss.backward()
+        #init grad
+        optimizer.zero_grad()
+
+        x_temp=x[:,:, :,subpart:subpart+8]
+        y_temp=y[:,:, :,subpart:subpart+1]
+        y_pred_temp = model(x_temp)
         
-    #optimise → applique les grad trouvées au différent params (update weights)
-    optimizer.step()
+        # Compute and print loss
+        loss = criterion(torch.squeeze(y_pred_temp), torch.squeeze(y_temp))
+        loss_vector[epoch]=loss.item()
+    
+        #backward → calcul les grads
+        loss.backward()
+            
+        #optimise → applique les grad trouvées au différent params (update weights)
+        optimizer.step()
         
-    #maj loss → pas sur de la syntaxe
-    average_loss += loss.data
+        #save le resultat
+        if epoch==n_iterations-1:
+            if subpart == 0:
+                y_pred=y_pred_temp
+            else:
+                y_pred=torch.cat((y_pred,y_pred_temp), 3)
+                
+    print(loss_vector[epoch],flush=True)
+    sys.stdout.flush()
+    if epoch==n_iterations-1:
+        for b in range(batch_size):
+            module_s=y_pred[b][0].cpu().detach().numpy()
+            module_x=x[b][0].cpu().detach().numpy()
+            module_z=y[b][0].cpu().detach().numpy()
+            plt.subplot(131)
+            plt.imshow(module_s) 
+            plt.subplot(132)
+            plt.imshow(module_x) 
+            plt.subplot(133)
+            plt.imshow(module_z) 
+            plt.show()
 
 
+# data_test_iter=iter(testloader)
+# data_test = data_test_iter.next()
+# x,y,a=data_test
+# x=x.to(torch.device("cuda:0"))
+# y=y.to(torch.device("cuda:0"))
+# a=a.to(torch.device("cuda:0"))
+# y_pred = model(x)
 
-data_test_iter=iter(testloader)
-data_test = data_test_iter.next()
-x,y,a=data_test
-x=x.to(torch.device("cuda:0"))
-y=y.to(torch.device("cuda:0"))
-a=a.to(torch.device("cuda:0"))
-y_pred = model(x)
 
+# from scipy.io import wavfile #for audio processing
+# import scipy.signal as sig
+# from math import floor
 
-from scipy.io import wavfile #for audio processing
-import scipy.signal as sig
-from math import floor
+# def signal_reconsctructed(y_pred,a,indice):
+#     fs=8000
+#     nperseg = 256
+#     noverlap=nperseg//2
+#     module_s=y_pred[indice][0].cpu().detach().numpy()
+#     phase_s=a[indice][0].cpu().detach().numpy()
+#     Zxx = module_s*(np.exp(1j*phase_s))
+#     _,reconstructed = sig.istft(Zxx, fs=fs, window='hann', nperseg=nperseg, noverlap=noverlap, nfft=None, input_onesided=True, boundary=True, time_axis=-1, freq_axis=-2)
+#     reconstructed = np.int16(reconstructed/np.amax(np.absolute(reconstructed))*2**15)
+#     wavfile.write('signal_denoise_'+str(indice)+'.wav',fs,reconstructed)
 
-def signal_reconsctructed(y_pred,a,indice):
-    fs=16000
-    nperseg = floor(0.03*fs)
-    noverlap=nperseg//2
-    module_s=y_pred[indice][0].cpu().detach().numpy()
-    phase_s=a[indice][0].cpu().detach().numpy()
-    Zxx = module_s*(np.exp(1j*phase_s))
-    _,reconstructed = sig.istft(Zxx, fs=fs, window='hann', nperseg=nperseg, noverlap=noverlap, nfft=None, input_onesided=True, boundary=True, time_axis=-1, freq_axis=-2)
-    reconstructed = np.int16(reconstructed/np.amax(np.absolute(reconstructed))*2**15)
-    wavfile.write('signal_denoise_'+str(indice)+'.wav',fs,reconstructed)
-
-#signal_reconsctructed(y_pred,a,0)
+# signal_reconsctructed(y_pred,a,0)

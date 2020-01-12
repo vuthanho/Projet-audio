@@ -6,8 +6,10 @@ Created on Tue Nov 26 22:08:20 2019
 """
 
 import torch
+import matplotlib.pyplot as plt
 
 # Fully Convolutionnal Network
+
 
 class FCN(torch.nn.Module): 
     #Constructeur qui définis nos couches
@@ -18,29 +20,30 @@ class FCN(torch.nn.Module):
         """
         super(FCN, self).__init__()
         self.firstlayer = torch.nn.Sequential(
-            torch.nn.Conv2d(1,18,(9,7),padding=(9//2,7//2)),
+            torch.nn.Conv2d(1,18,(9,8),padding=(9//2,0)),
             torch.nn.BatchNorm2d(18),
-            torch.nn.ReLU(True),
+            torch.nn.ReLU(),
             torch.nn.Conv2d(18,30,(5,1),padding=(5//2,1//2)),
             torch.nn.BatchNorm2d(30),
-            torch.nn.ReLU(True),
+            torch.nn.ReLU(),
             torch.nn.Conv2d(30,8,(9,1),padding=(9//2,1//2)),
             torch.nn.BatchNorm2d(8),
-            torch.nn.ReLU(True)
+            torch.nn.ReLU(),
         )
         self.hiddenlayer = torch.nn.Sequential(
             torch.nn.Conv2d(8,18,(9,1),padding=(9//2,1//2)),
             torch.nn.BatchNorm2d(18),
-            torch.nn.ReLU(True),
+            torch.nn.ReLU(),
             torch.nn.Conv2d(18,30,(5,1),padding=(5//2,1//2)),
             torch.nn.BatchNorm2d(30),
-            torch.nn.ReLU(True),
+            torch.nn.ReLU(),
             torch.nn.Conv2d(30,8,(9,1),padding=(9//2,1//2)),
             torch.nn.BatchNorm2d(8),
-            torch.nn.ReLU(True)
+            torch.nn.ReLU(),
         )
-        self.lastlayer = torch.nn.Conv2d(8,1,(129,1),padding=(129//2,1//2))
-        
+        self.lastlayer = torch.nn.Sequential(
+            torch.nn.Conv2d(8,1,(129,1),padding=(129//2,1//2)),
+        )
     #forward : calcul a partir de l'entrée la sortie du réseau en appliquant les différentes couches successif définis dans le constructeur
     def forward(self, x):
         x = self.firstlayer(x)

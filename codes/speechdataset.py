@@ -15,6 +15,7 @@ from scipy.io import wavfile #for audio processing
 from scipy.signal import spectrogram
 from codes import toolkit
 from math import floor
+import numpy as np
 
 class SpeechDataset(object):
     """SpeechDataset dataset."""
@@ -73,18 +74,28 @@ class SpeechDataset(object):
             signal = toolkit.normalise(signal)
         
         if 'train' in self.transform:
-            fs=16000
+            fs=8000 # Car sous échantillonnage ?
             nperseg = 256#floor(0.03*fs)
             noverlap=nperseg//2
             _,_,signal_noised = spectrogram(signal_noised, fs=fs, window='hann', nperseg=nperseg, noverlap=noverlap, nfft=None, detrend=False, return_onesided=True, scaling='spectrum', axis=-1, mode='magnitude')
             _,_,signal = spectrogram(signal, fs=fs, window='hann', nperseg=nperseg, noverlap=noverlap, nfft=None, detrend=False, return_onesided=True, scaling='spectrum', axis=-1, mode='magnitude')
             # sample = {'signal_noised': signal_noised, 'signal' : signal}
+
+            # Normalisation du spectre
+            s_min = signal.min()
+            s_max = signal.max()
+            n_min = signal_noised.min()
+            n_max = signal_noised.max()
+
+            signal = np.divide(signal-s_min,s_max-s_min)
+            signal_noised = np.divide(signal_noised-n_min,n_max-n_min)
+
             signal = signal[None,...]
             signal_noised = signal_noised[None,...]
-            sample = [signal,signal_noised]
+            sample = [signal_noised,signal]
         
         if 'test' in self.transform:
-            fs=16000
+            fs=8000
             nperseg = 256 #floor(0.03*fs)
             noverlap=nperseg//2
             temp=signal_noised
@@ -92,10 +103,20 @@ class SpeechDataset(object):
             _,_,signal = spectrogram(signal, fs=fs, window='hann', nperseg=nperseg, noverlap=noverlap, nfft=None, detrend=False, return_onesided=True, scaling='spectrum', axis=-1, mode='magnitude')
             _,_,angle_noised = spectrogram(temp, fs=fs, window='hann', nperseg=nperseg, noverlap=noverlap, nfft=None, detrend=False, return_onesided=True, scaling='spectrum', axis=-1, mode='angle')
             # sample = {'signal_noised': signal_noised, 'signal' : signal, 'angle' : angle_noised}
+
+            # Normalisation du spectre
+            s_min = signal.min()
+            s_max = signal.max()
+            n_min = signal_noised.min()
+            n_max = signal_noised.max()
+
+            signal = np.divide(signal-s_min,s_max-s_min)
+            signal_noised = np.divide(signal_noised-n_min,n_max-n_min)
+
             signal = signal[None,...]
             signal_noised = signal_noised[None,...]
             #angle_noised = angle_noised[None,...]
-            sample = [signal,signal_noised,angle_noised]
+            sample = [signal_noised,signal,angle_noised]
         
         if 'tensor' in self.transform:
             signal_noised = toolkit.totensor(signal_noised)
