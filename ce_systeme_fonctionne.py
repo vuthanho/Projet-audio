@@ -134,11 +134,10 @@ for epoch in range(n_iterations):
         optimizer.step()
         
         #save le resultat
-        if epoch==n_iterations-1:
-            if subpart == 0:
-                y_pred=y_pred_temp
-            else:
-                y_pred=torch.cat((y_pred,y_pred_temp), 3)
+        if subpart == 0:
+            y_pred=y_pred_temp
+        else:
+            y_pred=torch.cat((y_pred,y_pred_temp), 3)
                 
     print(loss_vector[epoch],flush=True)
     sys.stdout.flush()
