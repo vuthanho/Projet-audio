@@ -20,6 +20,14 @@ import sys
 import math
 from scipy.io import wavfile #for audio processing
 import scipy.signal as sig
+from time import sleep
+
+def psnr(img1,img2):
+    img1 = img1.astype(np.float64)
+    img2 = img2.astype(np.float64)
+    mse = np.mean((img1 - img2) ** 2)
+    result = 10 * math.log10(1. / mse)
+    return result
 
 #Batch size (permet de travailler avec plusieurs sample en même temps )
 """
@@ -27,7 +35,7 @@ attention ! il faut vérifier que sa donne un résultat entier nb de fichier
 divisé par batch_size (enfin je pense)
 """
 
-batch_size= 25
+batch_size= 5
 
 #get the workspace path
 dir_path = os.path.dirname(os.path.realpath(__file__))
@@ -70,10 +78,10 @@ model.apply(init_normal)
 model.double().cuda()
 
 #learning rate
-learning_rate = 1e-3
-
+#learning_rate = 1e-6
+learning_rate = 1e-6
 #nb d'iter → nombre epoch
-n_iterations = 5000
+n_iterations =14000
 
 # Construct our loss function and an Optimizer. The call to model.parameters()
 # in the SGD constructor will contain the learnable parameters of the two
@@ -82,11 +90,19 @@ criterion = torch.nn.MSELoss(reduction='sum')
 torch.backends.cudnn.enabled = True
 #decente par gradient, avoir si on prend autre chose
 # optimizer = torch.optim.SGD(model.parameters(), lr= learning_rate)
-optimizer = torch.optim.Adadelta(model.parameters(),lr=learning_rate)
+optimizer = torch.optim.ASGD(model.parameters(),lr=learning_rate)
 loss_vector = np.zeros(n_iterations)
 
 # for epoch in range(n_iterations):
 #     print(epoch)
+
+psnr_debruite_vector = np.zeros(n_iterations)
+psnr_bruite_vector = np.zeros(n_iterations)
+
+myplot = plt
+myplot.figure(frameon=True)
+myplot.ion()
+
 
 for epoch in range(n_iterations):
     
@@ -140,10 +156,29 @@ for epoch in range(n_iterations):
             plt.imshow(module_z) 
             plt.show()
 
-            
-        plt.figure()
-        plt.plot(loss_vector)
-        #plt.show()
+    module_s=y_pred[0][0].cpu().detach().numpy()
+    module_x=x[0][0].cpu().detach().numpy()
+    module_z=y[0][0].cpu().detach().numpy()
+    psnr_debruite_db=psnr(module_s,module_z[:,0:116])
+    psnr_bruite_db=psnr(module_x,module_z)
+    psnr_debruite_vector[epoch]=psnr_debruite_db
+    psnr_bruite_vector[epoch]=psnr_bruite_db
+    
+    myplot.subplot(211)
+    myplot.cla()
+    myplot.plot(psnr_debruite_vector,label="Débruité") 
+    myplot.plot(psnr_bruite_vector,label="bruité")
+    myplot.legend()
+    myplot.xlim(0,epoch+0)
+    myplot.xlabel("epoch")
+    myplot.ylabel("PSNR dB")
+    myplot.subplot(212)
+    myplot.cla()
+    myplot.plot(loss_vector)
+    myplot.xlim(0,epoch+0)
+    myplot.xlabel("epoch")
+    myplot.ylabel("MSE")
+    myplot.pause(0.01)
 
 
         
@@ -151,8 +186,8 @@ for epoch in range(n_iterations):
     dataiter=iter(trainloader)
     
 #save model & optimizer : https://pytorch.org/tutorials/beginner/saving_loading_models.html
-torch.save(model.state_dict(), cwd+"\\saved\\model_nom")
-torch.save(optimizer.state_dict(), cwd+"\\saved\\optimizer_b25_5000")
+#torch.save(model.state_dict(), cwd+"\\saved\\model_nom")
+#torch.save(optimizer.state_dict(), cwd+"\\saved\\optimizer_b25_5000")
 #load
 #model_load = FCN()
 #model_load.load_state_dict(torch.load("C:/Users/Loïc/Documents/3A/deep learning/model_nom"))
