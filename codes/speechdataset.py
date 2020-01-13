@@ -1,5 +1,7 @@
  # -*- coding: utf-8 -*-
 """
+@author: Olivier
+@author: Loïc
 Classe permettant de load les données. Penser pour être utilisé avec un
 itérateur comme le dataloader de pytorch
 Le but est de récupérer pour le train le module du spectrogramme
@@ -11,6 +13,7 @@ exemple :
 """
 import os
 import torch
+import numpy as np
 from scipy.io import wavfile #for audio processing
 from scipy.signal import spectrogram
 from codes import toolkit
@@ -79,6 +82,27 @@ class SpeechDataset(object):
             noverlap=nperseg//2
             _,_,signal_noised = spectrogram(signal_noised, fs=fs, window='hann', nperseg=nperseg, noverlap=noverlap, nfft=None, detrend=False, return_onesided=True, scaling='spectrum', axis=-1, mode='magnitude')
             _,_,signal = spectrogram(signal, fs=fs, window='hann', nperseg=nperseg, noverlap=noverlap, nfft=None, detrend=False, return_onesided=True, scaling='spectrum', axis=-1, mode='magnitude')
+#            signal_noised = 2 * signal_noised / np.sum(np.hanning(nperseg))
+#            signal = 2 * signal / np.sum(np.hanning(nperseg))
+            
+#            #centré reduit par bande de f
+#            for k in range(np.shape(signal)[0]):
+#                signal[k,:]=(signal[k,:]-np.mean(signal[k,:])) /np.std(signal[k,:])
+#                signal_noised[k,:]=(signal_noised[k,:]-np.mean(signal_noised[k,:]))/np.std(signal_noised[k,:])
+#           
+            #centré reduit du spectro → aucun sens physique
+#            signal=(signal-np.mean(signal)) /np.std(signal)
+#            signal_noised=(signal_noised-np.mean(signal_noised))/np.std(signal_noised)
+#            
+            #min max par bande de f
+#            for k in range(np.shape(signal)[0]):
+#                signal[k,:]=(signal[k,:]-np.min(signal[k,:])) /(np.max(signal[k,:])-np.min(signal[k,:]))
+#                signal_noised[k,:]=(signal_noised[k,:]-np.min(signal_noised[k,:])) /(np.max(signal_noised[k,:])-np.min(signal_noised[k,:]))
+#           
+#            min max du spectro → aucun sens physique
+            signal=(signal-np.min(signal))/(np.max(signal)-np.min(signal))
+            signal_noised=(signal_noised-np.min(signal_noised))/(np.max(signal_noised)-np.min(signal_noised))
+            
             # sample = {'signal_noised': signal_noised, 'signal' : signal}
 
             # Normalisation du spectre

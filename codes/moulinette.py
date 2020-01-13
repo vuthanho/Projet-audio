@@ -3,6 +3,7 @@
 Created on Wed Oct 16 22:23:20 2019
 
 @author: Loïc
+@author: Olivier
 """
 
 """

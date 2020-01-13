@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Created on Tue Nov 26 22:08:20 2019
-
+@author: Olivier
 @author: Loïc
 """
 

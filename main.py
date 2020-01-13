@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 """
 Main script du projet
+
+@author: Olivier
+@author: Loïc
 """
 
 from code.speechdataset import SpeechDataset

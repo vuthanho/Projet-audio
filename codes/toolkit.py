@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 """
 Script contenant des fonctions utiles
+
+@author: Olivier
+@author: Loïc
 """
 
 import numpy as np
