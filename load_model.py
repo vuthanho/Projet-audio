@@ -31,8 +31,16 @@ def signal_reconsctructed(module_s,phase_s,indice):
 #     wavfile.write('signal_denoise_'+str(indice)+'.wav',fs,reconstructed)
      return reconstructed
 
+def psnr(img1,img2):
+    img1 = img1.astype(np.float64)
+    img2 = img2.astype(np.float64)
+    mse = np.mean((img1 - img2) ** 2)
+    result = 10 * math.log10(1. / mse)
+    return result
 
-batch_size=1
+batch_size=40
+display_spectro=False
+display_psnr=True
 
 #get the workspace path
 dir_path = os.path.dirname(os.path.realpath(__file__))
@@ -45,6 +53,10 @@ testset =  SpeechDataset(test_bruit_path, test_path, transform=['reshape','cut&s
 
 # test set loader
 testloader=torch.utils.data.DataLoader(testset, batch_size=batch_size, shuffle=True, num_workers=0)
+
+#Affichage de ce qu'il contient
+#for param_tensor in model_load.state_dict():
+#    print(param_tensor, "\t", model_load.state_dict()[param_tensor].size())
 
 #load model
 model_load = FCN()
@@ -66,7 +78,8 @@ data_test = data_test_iter.next()
 
 nb=1
 loss_test_vector = np.zeros(nb)
-
+psnr_debruite_vector = np.zeros(batch_size)
+psnr_bruite_vector = np.zeros(batch_size)
 for epoch in range(nb):
     
     print(epoch,flush=True)
@@ -104,25 +117,42 @@ for epoch in range(nb):
             module_z_test=y_test[b][0].cpu().detach().numpy()
             phase_z_test=a_test[b][0].cpu().detach().numpy()
             phase_z_test=phase_z_test[0:116]
-            plt.figure()
-            plt.subplot(131)
-            plt.imshow(module_s_test) 
-            plt.subplot(132)
-            plt.imshow(module_x_test) 
-            plt.subplot(133)
-            plt.imshow(module_z_test) 
-            plt.show()
             
-            reconstructed = signal_reconsctructed(module_s_test,phase_z_test,b)
-            signal = signal_reconsctructed(module_z_test[:,0:116],phase_z_test,2)
-            plt.figure()
-            plt.subplot(211)
-            plt.plot(reconstructed)
-            plt.subplot(212)
-            plt.plot(signal)
+            if display_spectro==True:
+                plt.figure()
+                plt.subplot(131)
+                plt.imshow(module_s_test) 
+                plt.subplot(132)
+                plt.imshow(module_x_test) 
+                plt.subplot(133)
+                plt.imshow(module_z_test) 
+                plt.show()
             
-        plt.figure()
-        plt.plot(loss_test_vector)
+            psnr_debruite_db=psnr(module_s_test,module_z_test[:,0:116])
+            psnr_bruite_db=psnr(module_x_test,module_z_test)
+            psnr_debruite_vector[b]=psnr_debruite_db
+            psnr_bruite_vector[b]=psnr_bruite_db
+#            print("PSNR en dB = " +str(psnr_debruite_db))
+            
+            
+            
+#            reconstructed = signal_reconsctructed(module_s_test,phase_z_test,b)
+#            signal = signal_reconsctructed(module_z_test[:,0:116],phase_z_test,2)
+#            plt.figure()
+#            plt.subplot(211)
+#            plt.plot(reconstructed)
+#            plt.subplot(212)
+#            plt.plot(signal)
+        
+        if display_psnr==True:
+                plt.figure()
+                plt.plot(psnr_debruite_vector,label="Débruité") 
+                plt.plot(psnr_bruite_vector,label="bruité")
+                plt.legend()
+                plt.show()
+        
+#        plt.figure()
+#        plt.plot(loss_test_vector)
         #plt.show()
 
 
@@ -130,6 +160,3 @@ for epoch in range(nb):
     #print(loss_vector[epoch])
     data_test_iter=iter(testloader)
     
-    
-for param_tensor in model_load.state_dict():
-    print(param_tensor, "\t", model_load.state_dict()[param_tensor].size())
