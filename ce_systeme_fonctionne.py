@@ -18,18 +18,17 @@ import numpy as np
 import torch
 import sys
 import math
+from scipy.io import wavfile #for audio processing
+import scipy.signal as sig
 
 #Batch size (permet de travailler avec plusieurs sample en même temps )
 """
 attention ! il faut vérifier que sa donne un résultat entier nb de fichier 
 divisé par batch_size (enfin je pense)
 """
-<<<<<<< HEAD
-batch_size= 25
-=======
-batch_size=20
 
->>>>>>> master
+batch_size= 25
+
 #get the workspace path
 dir_path = os.path.dirname(os.path.realpath(__file__))
 cwd = os.getcwd()
@@ -74,12 +73,10 @@ model.double().cuda()
 learning_rate = 1e-3
 
 #nb d'iter → nombre epoch
-<<<<<<< HEAD
 n_iterations = 5000
 
-=======
-n_iterations = 1000
->>>>>>> master
+
+
 # Construct our loss function and an Optimizer. The call to model.parameters()
 # in the SGD constructor will contain the learnable parameters of the two
 # nn.Linear modules which are members of the model.
@@ -144,8 +141,7 @@ for epoch in range(n_iterations):
             plt.subplot(133)
             plt.imshow(module_z) 
             plt.show()
-            rsb = RSB(module_s,module_x,module_z)
-            print(rsb)
+
             
         plt.figure()
         plt.plot(loss_vector)
@@ -177,16 +173,15 @@ torch.save(optimizer.state_dict(), "C:/Users/Loïc/Documents/3A/deep learning/op
 # import scipy.signal as sig
 # from math import floor
 
-def signal_reconsctructed(y_pred,a,indice):
+def signal_reconsctructed(module_s,phase_s,indice):
      fs=8000
      nperseg = 256
      noverlap=nperseg//2
-     module_s=y_pred[indice][0].cpu().detach().numpy()
-     phase_s=a[indice][0].cpu().detach().numpy()
      Zxx = module_s*(np.exp(1j*phase_s))
      _,reconstructed = sig.istft(Zxx, fs=fs, window='hann', nperseg=nperseg, noverlap=noverlap, nfft=None, input_onesided=True, boundary=True, time_axis=-1, freq_axis=-2)
      reconstructed = np.int16(reconstructed/np.amax(np.absolute(reconstructed))*2**15)
      wavfile.write('signal_denoise_'+str(indice)+'.wav',fs,reconstructed)
+     return reconstructed
 
 # signal_reconsctructed(y_pred,a,0)
     
@@ -263,6 +258,8 @@ for epoch in range(nb):
             module_s_test=y_pred[b][0].cpu().detach().numpy()
             module_x_test=x_test[b][0].cpu().detach().numpy()
             module_z_test=y_test[b][0].cpu().detach().numpy()
+            phase_z_test=a_test[b][0].cpu().detach().numpy()
+            phase_z_test=phase_z_test[0:116]
             plt.figure()
             plt.subplot(131)
             plt.imshow(module_s_test) 
@@ -272,6 +269,13 @@ for epoch in range(nb):
             plt.imshow(module_z_test) 
             plt.show()
             
+            reconstructed = signal_reconsctructed(module_s_test,phase_z_test,b)
+            signal = signal_reconsctructed(module_z_test[:,0:116],phase_z_test,2)
+            plt.figure()
+            plt.subplot(211)
+            plt.plot(reconstructed)
+            plt.subplot(212)
+            plt.plot(signal)
         plt.figure()
         plt.plot(loss_test_vector)
         #plt.show()
