@@ -75,8 +75,6 @@ learning_rate = 1e-3
 #nb d'iter → nombre epoch
 n_iterations = 5000
 
-
-
 # Construct our loss function and an Optimizer. The call to model.parameters()
 # in the SGD constructor will contain the learnable parameters of the two
 # nn.Linear modules which are members of the model.
@@ -153,8 +151,8 @@ for epoch in range(n_iterations):
     dataiter=iter(trainloader)
     
 #save model & optimizer : https://pytorch.org/tutorials/beginner/saving_loading_models.html
-torch.save(model.state_dict(), "C:/Users/Loïc/Documents/3A/deep learning/model_nom")
-torch.save(optimizer.state_dict(), "C:/Users/Loïc/Documents/3A/deep learning/optimizer_b25_5000")
+torch.save(model.state_dict(), cwd+"\\saved\\model_nom")
+torch.save(optimizer.state_dict(), cwd+"\\saved\\optimizer_b25_5000")
 #load
 #model_load = FCN()
 #model_load.load_state_dict(torch.load("C:/Users/Loïc/Documents/3A/deep learning/model_nom"))
@@ -206,85 +204,3 @@ def RSB(prediction,bruit,reference):
     
     return rsb
 
-
-#load
-model_load = FCN()
-model_load.load_state_dict(torch.load("C:/Users/Loïc/Documents/3A/deep learning/b25_5000"))
-model_load.double().cuda()
-model_load.eval()
-
-batch_size=1
-test_bruit_path = train_bruit_path
-test_path = train_path
-testset =  SpeechDataset(test_bruit_path, test_path, transform=['reshape','cut&sousech','normalisation','test','tensor_cuda'])
-testloader=torch.utils.data.DataLoader(testset, batch_size=batch_size, shuffle=True, num_workers=0)
-data_test_iter=iter(testloader)
-data_test = data_test_iter.next()
-
-loss_test_vector = np.zeros(n_iterations)
-nb=1
-for epoch in range(nb):
-    
-    print(epoch,flush=True)
-    sys.stdout.flush()
-    data_test = data_test_iter.next()
-    x_test,y_test,a_test=data_test
-    x_test=x_test.to(torch.device("cuda:0"))
-    y_test=y_test.to(torch.device("cuda:0"))
-    a_test=a_test.to(torch.device("cuda:0"))
-    
-    # Forward pass: Compute predicted y by passing x to the model
-    for subpart in range (124-8):
-
-        x_temp=x_test[:,:, :,subpart:subpart+8]
-        y_temp=y_test[:,:, :,subpart:subpart+1]
-        y_pred_temp = model_load(x_temp)
-        
-        # Compute and print loss
-        loss_test = criterion(torch.squeeze(y_pred_temp), torch.squeeze(y_temp))
-        loss_test_vector[epoch]=loss_test.item()
-
-        
-        #save le resultat
-        if subpart == 0:
-            y_pred=y_pred_temp
-        else:
-            y_pred=torch.cat((y_pred,y_pred_temp), 3)
-                
-    print(loss_test_vector[epoch],flush=True)
-    sys.stdout.flush()
-    if epoch==nb-1:
-        for b in range(batch_size):
-            module_s_test=y_pred[b][0].cpu().detach().numpy()
-            module_x_test=x_test[b][0].cpu().detach().numpy()
-            module_z_test=y_test[b][0].cpu().detach().numpy()
-            phase_z_test=a_test[b][0].cpu().detach().numpy()
-            phase_z_test=phase_z_test[0:116]
-            plt.figure()
-            plt.subplot(131)
-            plt.imshow(module_s_test) 
-            plt.subplot(132)
-            plt.imshow(module_x_test) 
-            plt.subplot(133)
-            plt.imshow(module_z_test) 
-            plt.show()
-            
-            reconstructed = signal_reconsctructed(module_s_test,phase_z_test,b)
-            signal = signal_reconsctructed(module_z_test[:,0:116],phase_z_test,2)
-            plt.figure()
-            plt.subplot(211)
-            plt.plot(reconstructed)
-            plt.subplot(212)
-            plt.plot(signal)
-        plt.figure()
-        plt.plot(loss_test_vector)
-        #plt.show()
-
-
-        
-    #print(loss_vector[epoch])
-    data_test_iter=iter(testloader)
-    
-    
-for param_tensor in model_load.state_dict():
-    print(param_tensor, "\t", model_load.state_dict()[param_tensor].size())
