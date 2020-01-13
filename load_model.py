@@ -18,6 +18,21 @@ import numpy as np
 import torch
 import sys
 import math
+from scipy.io import wavfile #for audio processing
+import scipy.signal as sig
+
+def signal_reconsctructed(module_s,phase_s,indice):
+     fs=8000
+     nperseg = 256
+     noverlap=nperseg//2
+     Zxx = module_s*(np.exp(1j*phase_s))
+     _,reconstructed = sig.istft(Zxx, fs=fs, window='hann', nperseg=nperseg, noverlap=noverlap, nfft=None, input_onesided=True, boundary=True, time_axis=-1, freq_axis=-2)
+     reconstructed = np.int16(reconstructed/np.amax(np.absolute(reconstructed))*2**15)
+#     wavfile.write('signal_denoise_'+str(indice)+'.wav',fs,reconstructed)
+     return reconstructed
+
+
+batch_size=1
 
 #get the workspace path
 dir_path = os.path.dirname(os.path.realpath(__file__))
@@ -39,16 +54,19 @@ model_load.eval()
 
 # A PARTIR DE LA FAUT METTRE EN ORDRE
 
-batch_size=1
+train_bruit_path = cwd+'/data/data_train_bruit'
+train_path = cwd+'/data/data_train'
 test_bruit_path = train_bruit_path
 test_path = train_path
+criterion = torch.nn.MSELoss(reduction='sum')
 testset =  SpeechDataset(test_bruit_path, test_path, transform=['reshape','cut&sousech','normalisation','test','tensor_cuda'])
 testloader=torch.utils.data.DataLoader(testset, batch_size=batch_size, shuffle=True, num_workers=0)
 data_test_iter=iter(testloader)
 data_test = data_test_iter.next()
 
-loss_test_vector = np.zeros(n_iterations)
 nb=1
+loss_test_vector = np.zeros(nb)
+
 for epoch in range(nb):
     
     print(epoch,flush=True)
@@ -84,6 +102,8 @@ for epoch in range(nb):
             module_s_test=y_pred[b][0].cpu().detach().numpy()
             module_x_test=x_test[b][0].cpu().detach().numpy()
             module_z_test=y_test[b][0].cpu().detach().numpy()
+            phase_z_test=a_test[b][0].cpu().detach().numpy()
+            phase_z_test=phase_z_test[0:116]
             plt.figure()
             plt.subplot(131)
             plt.imshow(module_s_test) 
@@ -92,6 +112,14 @@ for epoch in range(nb):
             plt.subplot(133)
             plt.imshow(module_z_test) 
             plt.show()
+            
+            reconstructed = signal_reconsctructed(module_s_test,phase_z_test,b)
+            signal = signal_reconsctructed(module_z_test[:,0:116],phase_z_test,2)
+            plt.figure()
+            plt.subplot(211)
+            plt.plot(reconstructed)
+            plt.subplot(212)
+            plt.plot(signal)
             
         plt.figure()
         plt.plot(loss_test_vector)
