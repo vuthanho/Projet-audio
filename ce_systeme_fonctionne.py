@@ -24,12 +24,7 @@ import math
 attention ! il faut vérifier que sa donne un résultat entier nb de fichier 
 divisé par batch_size (enfin je pense)
 """
-<<<<<<< HEAD
 batch_size= 25
-=======
-batch_size=20
-
->>>>>>> master
 #get the workspace path
 dir_path = os.path.dirname(os.path.realpath(__file__))
 cwd = os.getcwd()
@@ -74,12 +69,8 @@ model.double().cuda()
 learning_rate = 1e-3
 
 #nb d'iter → nombre epoch
-<<<<<<< HEAD
 n_iterations = 5000
 
-=======
-n_iterations = 1000
->>>>>>> master
 # Construct our loss function and an Optimizer. The call to model.parameters()
 # in the SGD constructor will contain the learnable parameters of the two
 # nn.Linear modules which are members of the model.
@@ -157,8 +148,8 @@ for epoch in range(n_iterations):
     dataiter=iter(trainloader)
     
 #save model & optimizer : https://pytorch.org/tutorials/beginner/saving_loading_models.html
-torch.save(model.state_dict(), "C:/Users/Loïc/Documents/3A/deep learning/model_nom")
-torch.save(optimizer.state_dict(), "C:/Users/Loïc/Documents/3A/deep learning/optimizer_b25_5000")
+torch.save(model.state_dict(), cwd+"\\saved\\model_nom")
+torch.save(optimizer.state_dict(), cwd+"\\saved\\optimizer_b25_5000")
 #load
 #model_load = FCN()
 #model_load.load_state_dict(torch.load("C:/Users/Loïc/Documents/3A/deep learning/model_nom"))
@@ -212,11 +203,7 @@ def RSB(prediction,bruit,reference):
     return rsb
 
 
-#load
-model_load = FCN()
-model_load.load_state_dict(torch.load("C:/Users/Loïc/Documents/3A/deep learning/b25_5000"))
-model_load.double().cuda()
-model_load.eval()
+
 
 batch_size=1
 test_bruit_path = train_bruit_path
