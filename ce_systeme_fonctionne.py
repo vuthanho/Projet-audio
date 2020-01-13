@@ -81,7 +81,7 @@ model.double().cuda()
 #learning_rate = 1e-6
 learning_rate = 1e-6
 #nb d'iter → nombre epoch
-n_iterations =14000
+n_iterations =20000
 
 # Construct our loss function and an Optimizer. The call to model.parameters()
 # in the SGD constructor will contain the learnable parameters of the two
@@ -176,6 +176,8 @@ for epoch in range(n_iterations):
     myplot.cla()
     myplot.plot(loss_vector)
     myplot.xlim(0,epoch+0)
+    if epoch>50:
+        myplot.ylim(0,4.0)
     myplot.xlabel("epoch")
     myplot.ylabel("MSE")
     myplot.pause(0.01)
