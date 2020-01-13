@@ -24,7 +24,12 @@ import math
 attention ! il faut vérifier que sa donne un résultat entier nb de fichier 
 divisé par batch_size (enfin je pense)
 """
+<<<<<<< HEAD
 batch_size= 25
+=======
+batch_size=20
+
+>>>>>>> master
 #get the workspace path
 dir_path = os.path.dirname(os.path.realpath(__file__))
 cwd = os.getcwd()
@@ -69,8 +74,12 @@ model.double().cuda()
 learning_rate = 1e-3
 
 #nb d'iter → nombre epoch
+<<<<<<< HEAD
 n_iterations = 5000
 
+=======
+n_iterations = 1000
+>>>>>>> master
 # Construct our loss function and an Optimizer. The call to model.parameters()
 # in the SGD constructor will contain the learnable parameters of the two
 # nn.Linear modules which are members of the model.
