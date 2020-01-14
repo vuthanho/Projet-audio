@@ -185,12 +185,8 @@ for epoch in range(n_iterations):
     dataiter=iter(trainloader)
     
 #save model & optimizer : https://pytorch.org/tutorials/beginner/saving_loading_models.html
-torch.save(model.state_dict(), cwd+"\\saved\\b10_100")
-torch.save(optimizer.state_dict(), cwd+"\\saved\\optimizer_b10_100")
-#load
-#model_load = FCN()
-#model_load.load_state_dict(torch.load("C:/Users/Loïc/Documents/3A/deep learning/model_nom"))
-#model_load.eval()
+#torch.save(model.state_dict(), cwd+"\\saved\\model_b5_7000_ASVG")
+#torch.save(optimizer.state_dict(), cwd+"\\saved\\optimizer_b5_7000")
 
 def signal_reconsctructed(module_s,phase_s,indice):
      fs=8000

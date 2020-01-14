@@ -51,6 +51,11 @@ class FCN(torch.nn.Module):
         x = self.hiddenlayer(x)
         x = self.hiddenlayer(x)
         x = self.hiddenlayer(x)
+        x = self.hiddenlayer(x)
+        x = self.hiddenlayer(x)
+        x = self.hiddenlayer(x)
+        x = self.hiddenlayer(x)
+        x = self.hiddenlayer(x)
         x = self.lastlayer(x)
         return x
 

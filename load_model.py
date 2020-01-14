@@ -105,7 +105,7 @@ for epoch in range(nb):
 
         
         #save le resultat
-        if subpart == 0:
+        if subpart == 0: 
             y_pred=y_pred_temp
         else:
             y_pred=torch.cat((y_pred,y_pred_temp), 3)
