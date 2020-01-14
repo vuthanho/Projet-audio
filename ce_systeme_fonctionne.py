@@ -24,7 +24,7 @@ import math
 attention ! il faut vérifier que sa donne un résultat entier nb de fichier 
 divisé par batch_size (enfin je pense)
 """
-batch_size= 25
+batch_size= 10
 #get the workspace path
 dir_path = os.path.dirname(os.path.realpath(__file__))
 cwd = os.getcwd()
@@ -66,10 +66,10 @@ model.apply(init_normal)
 model.double().cuda()
 
 #learning rate
-learning_rate = 1e-3
+learning_rate = 1e-6
 
 #nb d'iter → nombre epoch
-n_iterations = 5000
+n_iterations = 500
 
 # Construct our loss function and an Optimizer. The call to model.parameters()
 # in the SGD constructor will contain the learnable parameters of the two
@@ -78,11 +78,11 @@ criterion = torch.nn.MSELoss(reduction='sum')
 torch.backends.cudnn.enabled = True
 #decente par gradient, avoir si on prend autre chose
 # optimizer = torch.optim.SGD(model.parameters(), lr= learning_rate)
-optimizer = torch.optim.Adadelta(model.parameters(),lr=learning_rate)
+optimizer = torch.optim.ASGD(model.parameters(),lr=learning_rate)
 loss_vector = np.zeros(n_iterations)
 
-# for epoch in range(n_iterations):
-#     print(epoch)
+scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=range(50,n_iterations,50), gamma=0.5)
+
 
 for epoch in range(n_iterations):
     
@@ -112,6 +112,7 @@ for epoch in range(n_iterations):
             
         #optimise → applique les grad trouvées au différent params (update weights)
         optimizer.step()
+        scheduler.step()
         
         #save le resultat
         if epoch==n_iterations-1:
@@ -135,8 +136,7 @@ for epoch in range(n_iterations):
             plt.subplot(133)
             plt.imshow(module_z) 
             plt.show()
-            rsb = RSB(module_s,module_x,module_z)
-            print(rsb)
+
             
         plt.figure()
         plt.plot(loss_vector)
@@ -148,8 +148,8 @@ for epoch in range(n_iterations):
     dataiter=iter(trainloader)
     
 #save model & optimizer : https://pytorch.org/tutorials/beginner/saving_loading_models.html
-torch.save(model.state_dict(), cwd+"\\saved\\model_nom")
-torch.save(optimizer.state_dict(), cwd+"\\saved\\optimizer_b25_5000")
+torch.save(model.state_dict(), cwd+"\\saved\\b10_100")
+torch.save(optimizer.state_dict(), cwd+"\\saved\\optimizer_b10_100")
 #load
 #model_load = FCN()
 #model_load.load_state_dict(torch.load("C:/Users/Loïc/Documents/3A/deep learning/model_nom"))
