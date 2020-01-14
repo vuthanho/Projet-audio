@@ -137,12 +137,13 @@ for epoch in range(nb):
     psnr_bruite_db=psnr(module_x_test,module_z_test)
     psnr_debruite_vector[epoch]=psnr_debruite_db
     psnr_bruite_vector[epoch]=psnr_bruite_db
-    dbmax= psnr_debruite_vector.max()
-    dbmin= psnr_bruite_vector.min()
-    msemax=loss_test_vector.max()
-    msemin=loss_test_vector.min()
     
-    if display_psnr==True:
+    
+    if display_psnr==True and epoch>0:
+        dbmax= psnr_debruite_vector.max()
+        dbmin= psnr_bruite_vector[0:epoch].min()
+        msemax=loss_test_vector.max()
+        msemin=loss_test_vector[0:epoch].min()
         myplot.subplot(211)
         myplot.cla()
         myplot.plot(psnr_debruite_vector,label="Débruité") 
@@ -162,4 +163,11 @@ for epoch in range(nb):
         myplot.pause(0.01)
         
     data_test_iter=iter(testloader)
-    
+ 
+delta = psnr_debruite_vector - psnr_bruite_vector
+mean_delta = np.mean(delta)
+print("Amélioration du PSNR en moyenne de " + str(mean_delta)+" dB")
+plt.figure()
+plt.plot(delta)
+plt.xlabel("epoch")
+plt.ylabel("Difference PSNR dB")
