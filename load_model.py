@@ -6,8 +6,6 @@ https://pytorch.org/tutorials/beginner/pytorch_with_examples.html
 @author: Olivier
 @author: Loïc
 
-paaser en db
-normaliser fréquence par fréquence (ligne) les psectro -moy puis / o²
 """
 from codes.speechdataset import SpeechDataset
 from codes.twoLayerNet import FCN
@@ -57,7 +55,7 @@ test_path = cwd+'/data/data_test'
 
 #load model
 model_load = FCN()
-model_load.load_state_dict(torch.load(cwd+"\\saved\\model_b5_10000_ASVG"))
+model_load.load_state_dict(torch.load(cwd+"\\saved\\model_b300_250_Adelta"))
 model_load.double().cuda()
 model_load.eval()
 

@@ -6,8 +6,6 @@ https://pytorch.org/tutorials/beginner/pytorch_with_examples.html
 @author: Olivier
 @author: Loïc
 
-paaser en db
-normaliser fréquence par fréquence (ligne) les psectro -moy puis / o²
 """
 from codes.speechdataset import SpeechDataset
 from codes.twoLayerNet import FCN
@@ -34,7 +32,12 @@ def psnr(img1,img2):
 attention ! il faut vérifier que sa donne un résultat entier nb de fichier 
 divisé par batch_size (enfin je pense)
 """
-batch_size= 10
+batch_size= 100
+#learning rate
+learning_rate = 1e-2
+#nb d'iter → nombre epoch
+n_iterations = 150
+
 #get the workspace path
 dir_path = os.path.dirname(os.path.realpath(__file__))
 cwd = os.getcwd()
@@ -75,11 +78,6 @@ def init_normal(m):
 model.apply(init_normal)
 model.double().cuda()
 
-#learning rate
-learning_rate = 1e-6
-
-#nb d'iter → nombre epoch
-n_iterations = 500
 
 # Construct our loss function and an Optimizer. The call to model.parameters()
 # in the SGD constructor will contain the learnable parameters of the two
@@ -88,11 +86,10 @@ criterion = torch.nn.MSELoss(reduction='sum')
 torch.backends.cudnn.enabled = True
 #decente par gradient, avoir si on prend autre chose
 # optimizer = torch.optim.SGD(model.parameters(), lr= learning_rate)
-optimizer = torch.optim.ASGD(model.parameters(),lr=learning_rate)
+optimizer = torch.optim.Adadelta(model.parameters(),lr=learning_rate)
 loss_vector = np.zeros(n_iterations)
 
-scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=range(50,n_iterations,50), gamma=0.5)
-
+scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.1, patience=100, verbose=True, threshold=0.0001, threshold_mode='rel', cooldown=0, min_lr=0, eps=1e-08)
 psnr_debruite_vector = np.zeros(n_iterations)
 psnr_bruite_vector = np.zeros(n_iterations)
 
@@ -129,29 +126,30 @@ for epoch in range(n_iterations):
             
         #optimise → applique les grad trouvées au différent params (update weights)
         optimizer.step()
-        scheduler.step()
+        scheduler.step(loss.item()) 
         
         #save le resultat
         if subpart == 0:
             y_pred=y_pred_temp
         else:
             y_pred=torch.cat((y_pred,y_pred_temp), 3)
-                
+            
+              
     print(loss_vector[epoch],flush=True)
     sys.stdout.flush()
-    if epoch==n_iterations-1:
-        for b in range(batch_size):
-            module_s=y_pred[b][0].cpu().detach().numpy()
-            module_x=x[b][0].cpu().detach().numpy()
-            module_z=y[b][0].cpu().detach().numpy()
-            plt.figure()
-            plt.subplot(131)
-            plt.imshow(module_s) 
-            plt.subplot(132)
-            plt.imshow(module_x) 
-            plt.subplot(133)
-            plt.imshow(module_z) 
-            plt.show()
+#    if epoch==n_iterations-1:
+#        for b in range(batch_size):
+#            module_s=y_pred[b][0].cpu().detach().numpy()
+#            module_x=x[b][0].cpu().detach().numpy()
+#            module_z=y[b][0].cpu().detach().numpy()
+#            plt.figure()
+#            plt.subplot(131)
+#            plt.imshow(module_s) 
+#            plt.subplot(132)
+#            plt.imshow(module_x) 
+#            plt.subplot(133)
+#            plt.imshow(module_z) 
+#            plt.show()
 
     module_s=y_pred[0][0].cpu().detach().numpy()
     module_x=x[0][0].cpu().detach().numpy()
@@ -173,8 +171,6 @@ for epoch in range(n_iterations):
     myplot.cla()
     myplot.plot(loss_vector)
     myplot.xlim(0,epoch+0)
-    if epoch>50:
-        myplot.ylim(0,4.0)
     myplot.xlabel("epoch")
     myplot.ylabel("MSE")
     myplot.pause(0.01)
@@ -185,8 +181,8 @@ for epoch in range(n_iterations):
     dataiter=iter(trainloader)
     
 #save model & optimizer : https://pytorch.org/tutorials/beginner/saving_loading_models.html
-#torch.save(model.state_dict(), cwd+"\\saved\\model_b5_7000_ASVG")
-#torch.save(optimizer.state_dict(), cwd+"\\saved\\optimizer_b5_7000")
+torch.save(model.state_dict(), cwd+"\\saved\\model_aadeem2")
+torch.save(optimizer.state_dict(), cwd+"\\saved\\optimizer_aadem2")
 
 def signal_reconsctructed(module_s,phase_s,indice):
      fs=8000

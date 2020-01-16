@@ -1,179 +1,219 @@
 # -*- coding: utf-8 -*-
-"""
-Main script du projet
 
+"""
+Created on Tue Nov 26 16:22:59 2019
+https://pytorch.org/tutorials/beginner/pytorch_with_examples.html
 @author: Olivier
 @author: Loïc
+
 """
+from codes.speechdataset import SpeechDataset
+from codes.twoLayerNet import FCN
 
-from code.speechdataset import SpeechDataset
 import os
-import torch
 import matplotlib.pyplot as plt
+import numpy as np
+import torch
+import sys
+import math
+from scipy.io import wavfile #for audio processing
+import scipy.signal as sig
+from time import sleep
 
-# In[1]:
+def psnr(img1,img2):
+    img1 = img1.astype(np.float64)
+    img2 = img2.astype(np.float64)
+    mse = np.mean((img1 - img2) ** 2)
+    result = 10 * math.log10(1. / mse)
+    return result
 
+#Batch size (permet de travailler avec plusieurs sample en même temps )
+"""
+attention ! il faut vérifier que sa donne un résultat entier nb de fichier 
+divisé par batch_size (enfin je pense)
+"""
+batch_size= 100
+#learning rate
+learning_rate = 1e-2
+#nb d'iter → nombre epoch
+n_iterations = 150
+
+#get the workspace path
 dir_path = os.path.dirname(os.path.realpath(__file__))
-train_bruit_path = dir_path+'/data/data_train_bruit'
-train_path = dir_path+'/data/data_train'
+cwd = os.getcwd()
+#DL training set
+train_bruit_path = cwd+'/data/data_train_bruit'
+train_path = cwd+'/data/data_train'
+trainset = SpeechDataset(train_bruit_path, train_path, transform=['reshape','cut&sousech','normalisation','train','tensor_cuda'])
 
-data_train_bruit = SpeechDataset(train_bruit_path, train_path, transform=['reshape','tensor'])
-sample = data_train_bruit[2]
-print("nombre de fichier : ",len(data_train_bruit))
-nb=data_train_bruit.max_len_function()
-print("max_len : ",nb)
-print("len signal : ",len(sample['signal']))
+#training set loader
+"""
+Le data loader est une fonction qui permet d'importer les données de manière itératifs, 
+le but étant de procéder aux calculs sur une nombre d'échantillons restreint (égale au
+batch_size).
+- shuffle : importer les échantillons de manière aléatoire
+- num_workers : nombre de coeur du processeur utilisés 
+"""
+trainloader=torch.utils.data.DataLoader(trainset, batch_size=batch_size, shuffle=True, num_workers=0)
 
-dataloader = torch.utils.data.DataLoader(data_train_bruit, batch_size=4, shuffle=True, num_workers=4)
+#DL test set
+test_bruit_path = cwd+'/data/data_test_bruit'
+test_path = cwd+'/data/data_test'
+testset =  SpeechDataset(test_bruit_path, test_path, transform=['reshape','cut&sousech','normalisation','test','tensor_cuda'])
+
+#training set loader
+testloader=torch.utils.data.DataLoader(testset, batch_size=batch_size, shuffle=True, num_workers=0)
+
+#data set as iterator
+dataiter=iter(trainloader)
+
+#nombre de batches totales présent dans notre sytèmes
+n_batches=len(dataiter)
+
+# Construct our model by instantiating the class defined above
+model = FCN()
+def init_normal(m):
+        if type(m) == torch.nn.Linear:
+            torch.nn.init.dirac_(m.weight, std=0.01)
+model.apply(init_normal)
+model.double().cuda()
 
 
+# Construct our loss function and an Optimizer. The call to model.parameters()
+# in the SGD constructor will contain the learnable parameters of the two
+# nn.Linear modules which are members of the model.
+criterion = torch.nn.MSELoss(reduction='sum')
+torch.backends.cudnn.enabled = True
+#decente par gradient, avoir si on prend autre chose
+# optimizer = torch.optim.SGD(model.parameters(), lr= learning_rate)
+optimizer = torch.optim.Adadelta(model.parameters(),lr=learning_rate)
+loss_vector = np.zeros(n_iterations)
+
+scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.1, patience=100, verbose=True, threshold=0.0001, threshold_mode='rel', cooldown=0, min_lr=0, eps=1e-08)
+psnr_debruite_vector = np.zeros(n_iterations)
+psnr_bruite_vector = np.zeros(n_iterations)
+
+myplot = plt
+myplot.figure(frameon=True)
+myplot.ion()
 
 
-# In[2]:
-
-
-class CNN(torch.nn.Module):
+for epoch in range(n_iterations):
     
-    #definition of the convolutions and fully connected layers of the neural network
-    def __init__(self):
-        super(CNN, self).__init__()
-        #First layer : convolution with 5x5 kernel, stride 1, 20 output channels and no zero padding
-        self.first_conv = torch.nn.Conv1d(1, 20, 5, stride=1)
-        #second layer : convolution with 5x5 kernel, stride 1, 50 output channels and no zeros padding
-        self.second_conv = torch.nn.Conv1d(20, 50, 5, stride = 1)
-        #third layer : full connected layer with 500 neurons
-        self.first_fully_c = torch.nn.Linear(50,500)
-        #forth layer : fully connected layer with 10 neurons
-        self.second_fully_c = torch.nn.Linear(500, 10)
-    
-    #operations made through the different layers of the neural network
-    def forward(self, I):
-        #activation of the first layer
-        I = torch.nn.functional.relu(self.first_conv(I))
-        #pooling of first layer
-        I = torch.nn.functional.max_pool1d(I,5, stride=2)
-        #activation of the second layer
-        I = torch.nn.functional.relu(self.second_conv(I))
-        #pooling of the second layer
-        I = torch.nn.functional.max_pool1d(I,5, stride=2)
-        # I = I.view(-1, 4*4*50)
-        #activation of the third layer
-        I = torch.nn.functional.relu(self.first_fully_c(I))
-        #activation of forth layer
-        I = torch.nn.functional.log_softmax(self.second_fully_c(I), dim=1)
-        return(I)
-    
-cnn = CNN()
-
-
-# In[3]:
-
-
-def initialization(m):
-    if type(m) == torch.nn.Linear:
-        torch.nn.init.uniform_(m.weight)
-    if type(m) == torch.nn.Conv1d:
-        torch.nn.init.uniform_(m.weight)
-
-def training(trainloader, model, device, optimizer, criterion):
-    model.train()
-    loss_list = []
-    for batch, (data, labels) in enumerate (trainloader):
-        #use of the GPU
-        data, labels = data.to(device), labels.to(device)
-        #initialization for gradient computation
-        optimizer.zero_grad()
-        #result of the input through the neural network
-        result = model(data)
-        #computation of the loss
-        loss = criterion(result, labels)
-        loss_list.append(loss)
-        #computation of the gradient
-        loss.backward()
-        #update
-        optimizer.step()
-    return(loss_list)
+    print(epoch,flush=True)
+    sys.stdout.flush()
+    data_train = dataiter.next()
+    x,y=data_train
+    x=x.to(torch.device("cuda:0"))
+    y=y.to(torch.device("cuda:0"))
         
+    # Forward pass: Compute predicted y by passing x to the model
+    for subpart in range (124-8):
 
-def validation(trainloader, model, device, size_validation, criterion):
-    model.eval()
-    loss_list = []
-    i = 0
-    for batch, (data, labels) in enumerate (trainloader):
-        data, labels = data.to(device), labels.to(device)
-        result = model(data)
-        loss = criterion(result, labels)
-        loss_list.append(loss)
-        i +=1
-        if i > 5000:
-            break;
-    return (loss_list)
+        #init grad
+        optimizer.zero_grad()
 
-def test(testloader, model, device, criterion):
-    loss_list = []
-    for batch, (data, labels) in enumerate (testloader):
-        data, labels = data.to(device), labels.to(device)
-        result = model(data)
-        loss = criterion(result, labels)
-        loss_list.append(loss)                                    
+        x_temp=x[:,:, :,subpart:subpart+8]
+        y_temp=y[:,:, :,subpart:subpart+1]
+        y_pred_temp = model(x_temp)
+        
+        # Compute and print loss
+        loss = criterion(torch.squeeze(y_pred_temp), torch.squeeze(y_temp))
+        loss_vector[epoch]=loss.item()
+    
+        #backward → calcul les grads
+        loss.backward()
+            
+        #optimise → applique les grad trouvées au différent params (update weights)
+        optimizer.step()
+        scheduler.step(loss.item()) 
+        
+        #save le resultat
+        if subpart == 0:
+            y_pred=y_pred_temp
+        else:
+            y_pred=torch.cat((y_pred,y_pred_temp), 3)
+            
+              
+    print(loss_vector[epoch],flush=True)
+    sys.stdout.flush()
+#    if epoch==n_iterations-1:
+#        for b in range(batch_size):
+#            module_s=y_pred[b][0].cpu().detach().numpy()
+#            module_x=x[b][0].cpu().detach().numpy()
+#            module_z=y[b][0].cpu().detach().numpy()
+#            plt.figure()
+#            plt.subplot(131)
+#            plt.imshow(module_s) 
+#            plt.subplot(132)
+#            plt.imshow(module_x) 
+#            plt.subplot(133)
+#            plt.imshow(module_z) 
+#            plt.show()
 
-# In[35]:
-
-device = torch.device("cuda")
-
-#parameters to set
-bsize = 64#batch size for training set
-test_bsize = 64#batch size for test set
-learning_rate = 0.001#learning rate
-nb_epoch = 2# number of epochs
-size_validation = 5000#size of the validation set
-
-#transforming the images into tensor and normalizing them (as shown in the pytorch tutorial)
-transform = torchvision.transforms.Compose(
-    [torchvision.transforms.ToTensor(),
-     torchvision.transforms.Normalize((0.1307,), (0.3081,))])
-
-#creating the training set
-trainset = torchvision.datasets.MNIST(root='./data', train=True,download=True, transform=transform)
-trainloader = torch.utils.data.DataLoader(trainset, batch_size=bsize,shuffle=True, num_workers = 4)
-
-#creating the test set
-testset = torchvision.datasets.MNIST(root='./data', train=True,download=True, transform=transform)
-testloader = torch.utils.data.DataLoader(testset, batch_size=test_bsize,shuffle=True, num_workers = 4)
-
-
-# In[40]:
-
-
-#creation of the model and use of cuda
-model = cnn.to(device)
-#model = cnn
-model.apply(initialization)
-#creation of the optimizer for the SGD
-optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)
-#definition of the loss function
-criterion = torch.nn.NLLLoss()
-
-
-final_training_loss = []
-final_validation_loss = []
-for epoch in range (0,60):
-    training_loss = training(trainloader, model, device, optimizer, criterion)
-    validation_loss = validation(trainloader, model, device, size_validation, criterion)
-    print(sum(training_loss)/len(training_loss))
-    print(sum(validation_loss)/len(validation_loss))
-    print(epoch)
-    final_training_loss.append(training_loss)
-    final_validation_loss.append(validation_loss)
-test(testloader, model, device, criterion)
+    module_s=y_pred[0][0].cpu().detach().numpy()
+    module_x=x[0][0].cpu().detach().numpy()
+    module_z=y[0][0].cpu().detach().numpy()
+    psnr_debruite_db=psnr(module_s,module_z[:,0:116])
+    psnr_bruite_db=psnr(module_x,module_z)
+    psnr_debruite_vector[epoch]=psnr_debruite_db
+    psnr_bruite_vector[epoch]=psnr_bruite_db
+    
+    myplot.subplot(211)
+    myplot.cla()
+    myplot.plot(psnr_debruite_vector,label="Débruité") 
+    myplot.plot(psnr_bruite_vector,label="bruité")
+    myplot.legend()
+    myplot.xlim(0,epoch+0)
+    myplot.xlabel("epoch")
+    myplot.ylabel("PSNR dB")
+    myplot.subplot(212)
+    myplot.cla()
+    myplot.plot(loss_vector)
+    myplot.xlim(0,epoch+0)
+    myplot.xlabel("epoch")
+    myplot.ylabel("MSE")
+    myplot.pause(0.01)
 
 
-# In[37]:
+        
+    #print(loss_vector[epoch])
+    dataiter=iter(trainloader)
+    
+#save model & optimizer : https://pytorch.org/tutorials/beginner/saving_loading_models.html
+torch.save(model.state_dict(), cwd+"\\saved\\model_aadeem2")
+torch.save(optimizer.state_dict(), cwd+"\\saved\\optimizer_aadem2")
 
+def signal_reconsctructed(module_s,phase_s,indice):
+     fs=8000
+     nperseg = 256
+     noverlap=nperseg//2
+     Zxx = module_s*(np.exp(1j*phase_s))
+     _,reconstructed = sig.istft(Zxx, fs=fs, window='hann', nperseg=nperseg, noverlap=noverlap, nfft=None, input_onesided=True, boundary=True, time_axis=-1, freq_axis=-2)
+     reconstructed = np.int16(reconstructed/np.amax(np.absolute(reconstructed))*2**15)
+     wavfile.write('signal_denoise_'+str(indice)+'.wav',fs,reconstructed)
+     return reconstructed
 
-plt.plot(np.arange(2000), training_loss[0:2000])
-#plt.ylim([2,2.5])
-plt.title('loss for lr = 0.0001')
-plt.xlabel('iterations')
-plt.ylabel('loss')
-training_loss[0]
+# signal_reconsctructed(y_pred,a,0)
+    
+def RSB(prediction,bruit,reference):
+    reference=reference[:,0:116]
+#    s_min = prediction.min()
+#    s_max = prediction.max()
+#    prediction = np.divide(prediction-s_min,s_max-s_min)
+    
+    bruit=bruit[:,0:116]
+    s_minb = bruit.min()
+    s_maxb = bruit.max()
+    bruit = np.divide(bruit-s_minb,s_maxb-s_minb)
+    
+    bruit=np.abs(bruit-reference)#puissance du bruit
+    bruit=np.sum(bruit,0)/129#moyenne de la puissance du bruit à chaque instant
+    
+    prediction=np.sum(np.abs(prediction),0)/129
+    
+    rsb=(np.sum(prediction)/116)/(np.sum(bruit)/116)#moyenne de la puissance du 
+    rsb = 10 * math.log10(rsb)
+    
+    return rsb
+
