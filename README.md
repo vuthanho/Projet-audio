@@ -1,6 +1,7 @@
 ####################
 ### Projet audio ###
 ####################
+
 @auteur : Olivier VU THANH & Loïc ARGENTIER, élève ingénieurs en 3ème année à ENSE3/PHELMA option SICOM
 
 SUJET : Deep learning appliqué au débruitage de signaux de parole
